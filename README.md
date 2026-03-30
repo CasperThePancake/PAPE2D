@@ -9,3 +9,14 @@ My end goal with the project is to recreate the first level of Angry Birds with 
 
 ###### Research started: December 24th, 2025
 ###### Development started: March 29th, 2026
+
+### Self-checklist (in order)
+- [x] Implement Sweep And Prune
+- [x] Implement abstract Body
+- [x] Implement Circle
+- [ ] Implement Polygon
+- [ ] Implement Rectangle
+- [ ] Implement Square
+- [ ] Implement SAT
+
+More added along the way...
