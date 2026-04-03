@@ -69,11 +69,15 @@ public abstract class Body {
     public void setInertiaMoment(double inertiaMoment) {
         this.inertiaMoment = inertiaMoment;
     }
+
     // =================================================================================
     // Position & velocity
     // =================================================================================
     public void setPosition(Vector2 newPosition) {
-        this.position = newPosition;
+        double cos = Math.cos(getAngle());
+        double sin = Math.sin(getAngle());
+
+        this.position = newPosition.plus(new Vector2(getOriginVector().getX() * cos - getOriginVector().getY() * sin, getOriginVector().getX() * sin + getOriginVector().getY() * cos));
     }
 
     public void setVelocity(Vector2 newVelocity) {
@@ -119,8 +123,6 @@ public abstract class Body {
     // =================================================================================
     // AABB & edges
     // =================================================================================
-
-
     protected double getAABBminX() {
         return AABBminX;
     }

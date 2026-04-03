@@ -14,9 +14,9 @@ My end goal with the project is to recreate the first level of Angry Birds with 
 - [x] Implement Sweep And Prune
 - [x] Implement abstract Body
 - [x] Implement Circle
-- [ ] Implement Polygon
-- [ ] Implement Rectangle
-- [ ] Implement Square
+- [x] Implement Polygon
+- [x] Implement Rectangle
+- [x] Implement Square
 - [ ] Implement SAT
 
 More added along the way...

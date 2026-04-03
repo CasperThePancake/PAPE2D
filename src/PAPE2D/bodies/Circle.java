@@ -3,14 +3,20 @@ package PAPE2D.bodies;
 import PAPE2D.Body;
 import PAPE2D.helper.Vector2;
 
+/**
+ * Circle body class
+ */
 public class Circle extends Body {
     private double radius;
 
     /**
-     * Create a circle with given radius, position (= circle center), velocity, and mass
+     * Create a circle with given radius, position, velocity, angle, angular velocity, and mass
      *
-     * @param position Given position (= circle center)
+     * @param radius Given radius
+     * @param position Given position (corresponds with circle center)
      * @param velocity Given velocity
+     * @param angle Given rotation
+     * @param angularVelocity Given rotational velocity
      * @param mass Given mass
      */
     public Circle(double radius, Vector2 position, Vector2 velocity, double angle, double angularVelocity, double mass) {
@@ -18,6 +24,13 @@ public class Circle extends Body {
         this.setRadius(radius);
     }
 
+    /**
+     * Create a circle with given radius, position, velocity, mass, and no starting rotation
+     * @param radius Given radius
+     * @param position Given position (corresponds with circle center)
+     * @param velocity Given velocity
+     * @param mass Given mass
+     */
     public Circle(double radius, Vector2 position, Vector2 velocity, double mass) {
         super(position, velocity, 0, 0, mass, calculateInertiaMoment(mass,radius),calculateOriginVector());
         this.setRadius(radius);
