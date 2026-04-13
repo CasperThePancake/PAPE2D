@@ -5,6 +5,7 @@ import PAPE2D.Optimize;
 import PAPE2D.helper.Vector2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,6 +13,7 @@ import java.util.List;
  */
 public class Polygon extends Body {
     private List<Vector2> internalVertices = new ArrayList<>();
+    private List<Vector2> internalEdges = new ArrayList<>();
     private double area;
 
     /**
@@ -34,6 +36,7 @@ public class Polygon extends Body {
 
         super(position, velocity, angle, angularVelocity, mass, calculateInertiaMoment(mass,vertices), calculateOriginVector(mass,vertices));
         setArea(vertices);
+        setInternalEdges(vertices);
         setInternalVertices(mass,vertices);
     }
 
@@ -82,6 +85,28 @@ public class Polygon extends Body {
 
             internalVertices.add(getOriginVector().times(-1).plus(connect));
         }
+    }
+
+    /**
+     * Store the internal edges for this polygon (non-rotated)
+     *
+     * @param vertices Given list of vertices
+     */
+    private void setInternalEdges(List<Vector2> vertices) {
+        List<Vector2> output = new ArrayList<>();
+        int N = vertices.size();
+        for (int i = 0; i < N; i++) {
+            internalEdges.add(vertices.get(i+1%N).minus(vertices.get(i)));
+        }
+    }
+
+    /**
+     * Get the internal edge vectors (vectors connecting vertices, non-rotated) for this polygon
+     *
+     * @return List of internal edge vectors
+     */
+    public List<Vector2> getInternalEdges() {
+        return internalEdges;
     }
 
     /**
@@ -221,5 +246,57 @@ public class Polygon extends Body {
         setAABBmaxX(maxX);
         setAABBminY(minY);
         setAABBmaxY(maxY);
+    }
+
+    @Override
+    public List<Vector2> getSATAxes(Body other) {
+        // For a polygon, the SAT axes to check are the edge normals
+        List<Vector2> output = new ArrayList<>();
+
+        for (Vector2 v : getInternalEdges()) {
+            output.add(v.rotate(getAngle()).normal());
+        }
+
+        return output;
+    }
+
+    @Override
+    public Vector2 getClosestReferenceTo(Vector2 position) {
+        double min = Double.POSITIVE_INFINITY;
+        Vector2 minVec = null;
+
+        double cos = Math.cos(getAngle());
+        double sin = Math.sin(getAngle());
+        for (Vector2 v : getInternalVertices()) {
+            Vector2 vReal = getPosition().plus(v.rotate(getAngle()));
+
+            if (vReal.distance(position) < min) {
+                min = vReal.distance(position);
+                minVec = vReal;
+            }
+        }
+
+        return minVec;
+    }
+
+    @Override
+    public Double[] getProjectionEdges(Vector2 projectionAxis) {
+        Vector2 normalizedProjectionAxis = projectionAxis.normalized();
+
+        double min = Double.POSITIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY;
+
+        double centerDot = getPosition().dot(normalizedProjectionAxis);
+
+        for (Vector2 v : getInternalVertices()) {
+            // Vector2 vReal = getPosition().plus(v.rotate(getAngle()));
+            // double p = vReal.dot(normalizedProjectionAxis); CAN BE FASTER!
+            double p = centerDot + v.rotate(getAngle()).dot(normalizedProjectionAxis);
+
+            min = Math.min(min, p);
+            max = Math.max(max, p);
+        }
+
+        return new Double[]{min, max};
     }
 }

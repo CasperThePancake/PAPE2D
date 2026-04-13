@@ -3,6 +3,8 @@ package PAPE2D.bodies;
 import PAPE2D.Body;
 import PAPE2D.helper.Vector2;
 
+import java.util.List;
+
 /**
  * Circle body class
  */
@@ -58,5 +60,24 @@ public class Circle extends Body {
         setAABBmaxX(getPosition().getX() + getRadius());
         setAABBminY(getPosition().getY() - getRadius());
         setAABBmaxY(getPosition().getY() + getRadius());
+    }
+
+    @Override
+    public List<Vector2> getSATAxes(Body other) {
+        // For a circle, the SAT axis to check is the one connecting its center to the other body's closest reference (like closest polygon vertex)
+        return List.of(getPosition().minus(other.getClosestReferenceTo(getPosition())));
+    }
+
+    @Override
+    public Vector2 getClosestReferenceTo(Vector2 position) {
+        return getPosition();
+    }
+
+    @Override
+    public Double[] getProjectionEdges(Vector2 projectionAxis) {
+        Vector2 normalizedProjectionAxis = projectionAxis.normalized();
+        double p = getPosition().dot(normalizedProjectionAxis);
+
+        return new Double[]{p-getRadius(), p+getRadius()};
     }
 }

@@ -2,6 +2,9 @@ package PAPE2D.helper;
 
 import PAPE2D.Body;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PotentialCollidingPair {
     private Body body1;
     private Body body2;
@@ -25,5 +28,11 @@ public class PotentialCollidingPair {
     public PotentialCollidingPair(Body body1, Body body2) {
         this.setBody1(body1);
         this.setBody2(body2);
+    }
+
+    public List<Vector2> getSATAxes() {
+        List<Vector2> output = new ArrayList<>(getBody1().getSATAxes(getBody2()));
+        output.addAll(getBody2().getSATAxes(getBody1()));
+        return output;
     }
 }

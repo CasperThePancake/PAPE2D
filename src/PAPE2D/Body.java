@@ -2,6 +2,8 @@ package PAPE2D;
 
 import PAPE2D.helper.Vector2;
 
+import java.util.List;
+
 /**
  * Abstract rigid body class
  *
@@ -171,4 +173,13 @@ public abstract class Body {
                 && (this.getEdgeValue(Axis.Y,Bound.MIN) <= other.getEdgeValue(Axis.Y,Bound.MAX))
                 && (this.getEdgeValue(Axis.Y,Bound.MAX) >= other.getEdgeValue(Axis.Y,Bound.MIN));
     }
+
+    // =================================================================================
+    // SAT stuff
+    // =================================================================================
+    public abstract List<Vector2> getSATAxes(Body other);
+
+    public abstract Vector2 getClosestReferenceTo(Vector2 position);
+
+    public abstract Double[] getProjectionEdges(Vector2 projectionAxis);
 }
