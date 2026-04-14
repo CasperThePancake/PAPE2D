@@ -17,6 +17,16 @@ My end goal with the project is to recreate the first level of Angry Birds with 
 - [x] Implement Polygon
 - [x] Implement Rectangle
 - [x] Implement Square
-- [ ] Implement SAT
+- [x] Implement SAT
+- [ ] Implement basic solver logic
+- [ ] Implement ForceGenerator
+- [ ] Implement basic forces
+- [ ] Implement Constraint
+- [ ] Implement types of constraints
+- [ ] Implement constraint solver logic
+- [ ] Implement full simulation logic
+- [ ] Write a rendering method
+- [ ] Perform loads of tests
+- [ ] Create Angry Birds
 
 More added along the way...

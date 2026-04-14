@@ -2,6 +2,7 @@ package PAPE2D.bodies;
 
 import PAPE2D.Body;
 import PAPE2D.Optimize;
+import PAPE2D.helper.Edge;
 import PAPE2D.helper.Vector2;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.List;
 public class Polygon extends Body {
     private List<Vector2> internalVertices = new ArrayList<>();
     private List<Vector2> internalEdges = new ArrayList<>();
+    private List<Vector2> worldVertices = new ArrayList<>();
     private double area;
 
     /**
@@ -30,14 +32,34 @@ public class Polygon extends Body {
      *      | !isConvex(vertices)
      */
     public Polygon(List<Vector2> vertices, Vector2 position, Vector2 velocity, double angle, double angularVelocity, double mass) throws IllegalArgumentException {
-        if (!isConvex(vertices)) {
+        // 1. Create a working copy so we don't mutate the user's input list directly
+        List<Vector2> workingVertices = new ArrayList<>(vertices);
+        Vector2 specialPoint = vertices.getFirst(); // Important this stays first, for user origin referencing
+
+        // 2. Check convexity
+        if (!isConvex(workingVertices)) {
             throw new IllegalArgumentException("The given polygon is not convex!");
         }
 
-        super(position, velocity, angle, angularVelocity, mass, calculateInertiaMoment(mass,vertices), calculateOriginVector(mass,vertices));
-        setArea(vertices);
-        setInternalEdges(vertices);
-        setInternalVertices(mass,vertices);
+        // 3. Winding check & correction
+        if (calculateArea(workingVertices) < 0) { // If vertices are given CW, area becomes negative (shoelace)
+            // Reverse to ensure CCW
+            Collections.reverse(workingVertices);
+
+            // Cycle the special first point back to the list start, so we know that's the user origin
+            while (!workingVertices.getFirst().equals(specialPoint)) {
+                Collections.rotate(workingVertices, 1);
+            }
+        }
+
+        // 4. Now proceed with the guaranteed CCW workingVertices
+        super(position, velocity, angle, angularVelocity, mass,
+                calculateInertiaMoment(mass, workingVertices),
+                calculateOriginVector(mass, workingVertices));
+
+        setArea(workingVertices);
+        setInternalEdges(workingVertices);
+        setInternalVertices(mass, workingVertices);
     }
 
     /**
@@ -96,7 +118,7 @@ public class Polygon extends Body {
         List<Vector2> output = new ArrayList<>();
         int N = vertices.size();
         for (int i = 0; i < N; i++) {
-            internalEdges.add(vertices.get(i+1%N).minus(vertices.get(i)));
+            internalEdges.add(vertices.get((i+1)%N).minus(vertices.get(i)));
         }
     }
 
@@ -121,7 +143,7 @@ public class Polygon extends Body {
         int N = vertices.size();
 
         for (int i = 0; i < N; i++) {
-            current = crossProduct(vertices.get(i), vertices.get(i+1 % N), vertices.get(i+2 % N));
+            current = crossProduct(vertices.get(i), vertices.get((i+1) % N), vertices.get((i+2) % N));
             if (current * previous < 0) {
                 return false;
             }
@@ -151,9 +173,9 @@ public class Polygon extends Body {
         // Calculate centroid coordinates
         double xCOM = 0;
         double yCOM = 0;
-        for (int i = 0; i < N; i++) {
-            xCOM = xCOM + (vertices.get(i).getX() + vertices.get(i+1 % N).getX()) * (vertices.get(i).getX() * vertices.get(i+1 % N).getY() - vertices.get(i+1 % N).getX() * vertices.get(i).getY());
-            yCOM = yCOM + (vertices.get(i).getY() + vertices.get(i+1 % N).getY()) * (vertices.get(i).getX() * vertices.get(i+1 % N).getY() - vertices.get(i+1 % N).getX() * vertices.get(i).getY());
+        for (int i = 0; i < N; i++) { // Shoelace formula
+            xCOM = xCOM + (vertices.get(i).getX() + vertices.get((i+1) % N).getX()) * (vertices.get(i).getX() * vertices.get((i+1) % N).getY() - vertices.get((i+1) % N).getX() * vertices.get(i).getY());
+            yCOM = yCOM + (vertices.get(i).getY() + vertices.get((i+1) % N).getY()) * (vertices.get(i).getX() * vertices.get((i+1) % N).getY() - vertices.get((i+1) % N).getX() * vertices.get(i).getY());
         }
         xCOM /= 6*calculateArea(vertices);
         yCOM /= 6*calculateArea(vertices);
@@ -166,7 +188,7 @@ public class Polygon extends Body {
         double area = 0;
         int N = vertices.size();
         for (int i = 0; i < N; i++) {
-            area = area + vertices.get(i).getX() * vertices.get(i+1 % N).getY() - vertices.get(i+1 % N).getX() * vertices.get(i).getY();
+            area = area + vertices.get(i).getX() * vertices.get((i+1) % N).getY() - vertices.get((i+1) % N).getX() * vertices.get(i).getY();
         }
 
         return area;
@@ -188,7 +210,7 @@ public class Polygon extends Body {
         double j = 0;
         int N = vertices.size();
         for (int i = 0; i < N; i++) {
-            j += (vertices.get(i).getX() * vertices.get(i + 1 % N).getY() - vertices.get(i + 1 % N).getX() * vertices.get(i).getY()) * (vertices.get(i).getX() * vertices.get(i).getX() + vertices.get(i).getX() * vertices.get(i + 1 % N).getX() + vertices.get(i + 1 % N).getX() * vertices.get(i + 1 % N).getX() + vertices.get(i).getY() * vertices.get(i).getY() + vertices.get(i).getY() * vertices.get(i + 1 % N).getY() + vertices.get(i + 1 % N).getY() * vertices.get(i + 1 % N).getY());
+            j += (vertices.get(i).getX() * vertices.get((i + 1) % N).getY() - vertices.get((i + 1) % N).getX() * vertices.get(i).getY()) * (vertices.get(i).getX() * vertices.get(i).getX() + vertices.get(i).getX() * vertices.get((i + 1) % N).getX() + vertices.get((i + 1) % N).getX() * vertices.get((i + 1) % N).getX() + vertices.get(i).getY() * vertices.get(i).getY() + vertices.get(i).getY() * vertices.get((i + 1) % N).getY() + vertices.get((i + 1) % N).getY() * vertices.get((i + 1) % N).getY());
         }
         j /= 12;
 
@@ -212,6 +234,16 @@ public class Polygon extends Body {
         return com.minus(vertices.getFirst());
     }
 
+    @Override
+    /**
+     * This method is run after an integration step, for internal updating beyond position/velocity/angle/angular velocity
+     */
+    public void updateInternally() {
+        for (int i = 0; i < getInternalVertices().size(); i++) {
+            worldVertices.set(i,getPosition().plus(getInternalVertices().get(i).rotate(getAngle())));
+        }
+    }
+
     @Override @Optimize
     public void updateAABB() {
         double minX = 0;
@@ -219,11 +251,8 @@ public class Polygon extends Body {
         double maxX = 0;
         double maxY = 0;
 
-        double cos = Math.cos(getAngle());
-        double sin = Math.sin(getAngle());
-
         for (Vector2 v : getInternalVertices()) {
-            Vector2 vReal = getPosition().plus(new Vector2(v.getX() * cos - v.getY() * sin, v.getX() * sin + v.getY() * cos));
+            Vector2 vReal = getPosition().plus(v.rotate(getAngle()));
 
             if (vReal.getX() < minX) {
                 minX = vReal.getX();
@@ -265,14 +294,10 @@ public class Polygon extends Body {
         double min = Double.POSITIVE_INFINITY;
         Vector2 minVec = null;
 
-        double cos = Math.cos(getAngle());
-        double sin = Math.sin(getAngle());
-        for (Vector2 v : getInternalVertices()) {
-            Vector2 vReal = getPosition().plus(v.rotate(getAngle()));
-
-            if (vReal.distance(position) < min) {
-                min = vReal.distance(position);
-                minVec = vReal;
+        for (Vector2 v : worldVertices) {
+            if (v.distance(position) < min) {
+                min = v.distance(position);
+                minVec = v;
             }
         }
 
@@ -286,17 +311,30 @@ public class Polygon extends Body {
         double min = Double.POSITIVE_INFINITY;
         double max = Double.NEGATIVE_INFINITY;
 
-        double centerDot = getPosition().dot(normalizedProjectionAxis);
-
-        for (Vector2 v : getInternalVertices()) {
-            // Vector2 vReal = getPosition().plus(v.rotate(getAngle()));
-            // double p = vReal.dot(normalizedProjectionAxis); CAN BE FASTER!
-            double p = centerDot + v.rotate(getAngle()).dot(normalizedProjectionAxis);
+        for (Vector2 v : worldVertices) {
+            double p = v.dot(normalizedProjectionAxis);
 
             min = Math.min(min, p);
             max = Math.max(max, p);
         }
 
         return new Double[]{min, max};
+    }
+
+    public Edge findBestEdge(Vector2 outwardNormal) {
+        int N = getInternalVertices().size();
+
+        Edge bestEdge = null;
+        double bestAlign = Double.NEGATIVE_INFINITY;
+
+        for (int i = 0; i < N; i++) {
+            Vector2 edgeVector = worldVertices.get((i+1)%N).minus(worldVertices.get(i));
+            Vector2 outwardVector = edgeVector.rotate(-Math.PI/2).normalized();
+            if (outwardVector.dot(outwardNormal) > bestAlign) {
+                bestEdge = new Edge(worldVertices.get(i), worldVertices.get((i+1)%N), outwardVector);
+            }
+        }
+
+        return bestEdge;
     }
 }

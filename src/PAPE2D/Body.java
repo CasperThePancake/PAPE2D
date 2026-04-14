@@ -76,10 +76,11 @@ public abstract class Body {
     // Position & velocity
     // =================================================================================
     public void setPosition(Vector2 newPosition) {
-        double cos = Math.cos(getAngle());
-        double sin = Math.sin(getAngle());
+        // User supplies newPosition (user origin), use (rotated) originVector on it to find where the real position (COM) should be to satisfy their desire
+        this.position = newPosition.plus(getOriginVector().rotate(getAngle()));
 
-        this.position = newPosition.plus(new Vector2(getOriginVector().getX() * cos - getOriginVector().getY() * sin, getOriginVector().getX() * sin + getOriginVector().getY() * cos));
+        // Optional updating (WIP: run this after a time step, not just position change!)
+        updateInternally();
     }
 
     public void setVelocity(Vector2 newVelocity) {
@@ -109,6 +110,8 @@ public abstract class Body {
     public double getAngularVelocity() {
         return angularVelocity;
     }
+
+    public abstract void updateInternally();
 
     /**
      * Given a point on the body, returns the relative vector pointing from object COM/anchor to given point

@@ -21,9 +21,9 @@ public abstract class NarrowPhaseCollisionSystem extends CollisionSystem {
     // Abstract methods
     // =================================================================================
 
-    public abstract ContactManifold getContactManifold(PotentialCollidingPair potentialCollidingPair);
+    public abstract List<ContactManifold> getContactManifolds(PotentialCollidingPair potentialCollidingPair);
 
     public boolean isColliding(PotentialCollidingPair potentialCollidingPair) {
-        return getContactManifold(potentialCollidingPair) != null;
+        return getContactManifolds(potentialCollidingPair) != null;
     }
 }

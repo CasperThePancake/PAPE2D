@@ -197,6 +197,9 @@ public class Vector2 {
      * @return New vector equal in direction to this vector but normalized to a size of 1
      */
     public Vector2 normalized() {
-        return this.times(1/size());
+        if (size() != 0) {
+            return this.times(1 / size());
+        }
+        return this;
     }
 }
