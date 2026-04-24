@@ -3,7 +3,7 @@
 
 PAPE2D is a 2D constraint-based, rigid-body physics engine, similar to Box2D. It is built from the ground up with no external physics libraries.
 
-I'm currently hard at work developing the first working version of PAPE2D, together with a full textbook course on the physics behind it.
+I'm currently hard at work developing the first working version of PAPE2D, together with a full textbook course on the physics behind it. Keep in mind I also have a master in physics to study for, so progress comes in sporadic bursts!
 
 My end goal with the project is to recreate the first level of Angry Birds with the engine, a true test of good physics!
 
