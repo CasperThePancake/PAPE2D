@@ -1,6 +1,45 @@
 package PAPE2D.force;
 
-import PAPE2D.ForceGenerator;
+import PAPE2D.Body;
+import PAPE2D.UniversalForce;
 
-public class AirResistance extends ForceGenerator {
+/**
+ * Simple velocity-based air resistance force class
+ */
+public class AirResistance extends UniversalForce {
+    private double resistance;
+
+    /**
+     * Get the resistance value of this force
+     *
+     * @return Air resistance value of this force
+     */
+    public double getResistance() {
+        return resistance;
+    }
+
+    /**
+     * Set the resistance value of this force
+     *
+     * @param resistance Given resistance value
+     */
+    public void setResistance(double resistance) {
+        this.resistance = resistance;
+    }
+
+    /**
+     * Create a new air resistance force with given resistance factor
+     *
+     * @param resistance Given resistance factor
+     */
+    public AirResistance(double resistance) {
+        this.setResistance(resistance);
+    }
+
+    @Override
+    public void applyAcceleration(double dt) {
+        for (Body b : getBodies()) {
+            b.addVelocity(b.getVelocity().times(-resistance*dt/b.getMass()));
+        }
+    }
 }

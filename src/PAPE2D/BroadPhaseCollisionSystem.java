@@ -20,9 +20,9 @@ public abstract class BroadPhaseCollisionSystem extends CollisionSystem {
     // Abstract methods
     // =================================================================================
 
-    public abstract void addBody(Body b);
+    protected abstract void addBody(Body b);
 
-    public abstract void removeBody(Body b);
+    protected abstract void removeBody(Body b);
 
     public abstract void update();
 
