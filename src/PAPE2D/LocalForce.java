@@ -1,6 +1,9 @@
 package PAPE2D;
 
 public abstract class LocalForce {
+    // =================================================================================
+    // Abstract methods
+    // =================================================================================
     /**
      * Apply this local force's acceleration over given time-step
      *

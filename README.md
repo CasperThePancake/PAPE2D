@@ -22,7 +22,7 @@ My end goal with the project is to recreate the first level of Angry Birds with 
 - [x] Implement ForceGenerator
 - [x] Implement Gravity force
 - [x] Implement AirResistance force
-- [ ] Implement Spring force
+- [x] Implement Spring force
 - [ ] Implement Constraint
 - [ ] Implement types of constraints
 - [ ] Implement constraint solver logic

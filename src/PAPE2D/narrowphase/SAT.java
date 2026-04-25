@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SAT extends NarrowPhaseCollisionSystem {
+    // =================================================================================
+    // getContactManifolds
+    // =================================================================================
     @Override
     public List<ContactManifold> getContactManifolds(PotentialCollidingPair potentialCollidingPair) {
         // 1. Get list of axes to check from Bodies
@@ -80,7 +83,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
             // Find the reference edge: edge of the reference body whose outward normal aligns most with stored normal
             Edge referenceEdge = ((Polygon) referenceBody).findBestEdge(normal);
 
-            // Find the incident edge: edge of the incident body whose outward normal aligns most with negated stored normal
+            // Find the incident edge: edge of the incident body whose outward normal aligns most with negated stored normal (of reference)
             Edge incidentEdge = ((Polygon) incidentBody).findBestEdge(normal.times(-1));
 
             // CLIPPING ALGORITHM
@@ -120,9 +123,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
             }
         }
 
-        // 7. Determine relative position vectors for both bodies
-
-        // 8. Put it all into contact manifold and return
+        // 7. Put it all into contact manifold and return
         List<ContactManifold> contactManifolds = new ArrayList<>();
 
         for (int i = 0; i < contactPoints.size(); i++) {
@@ -132,6 +133,9 @@ public class SAT extends NarrowPhaseCollisionSystem {
         return contactManifolds;
     }
 
+    // =================================================================================
+    // Intersect snapping
+    // =================================================================================
     public Vector2 intersectSnap(Vector2 pointA, Vector2 pointB, Vector2 pointQ, Vector2 vecSide) {
         double c = (pointQ.minus(pointA).dot(vecSide)) / (pointB.minus(pointA).dot(vecSide));
         return pointB.times(c).plus(pointA.times(1-c));

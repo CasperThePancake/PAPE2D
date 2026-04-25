@@ -9,6 +9,9 @@ import java.util.List;
  * Rectangle body class
  */
 public class Rectangle extends Polygon {
+    // =================================================================================
+    // Constructors
+    // =================================================================================
     /**
      * Create a rectangle with given width, height, position, velocity, angle, angular velocity, and mass
      *

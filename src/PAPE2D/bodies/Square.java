@@ -6,6 +6,9 @@ import PAPE2D.helper.Vector2;
  * Square body class
  */
 public class Square extends Rectangle {
+    // =================================================================================
+    // Constructors
+    // =================================================================================
     /**
      * Create a square with given width, position, velocity, angle, angular velocity, and mass
      *

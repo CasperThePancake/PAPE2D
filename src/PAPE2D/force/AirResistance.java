@@ -7,8 +7,14 @@ import PAPE2D.UniversalForce;
  * Simple velocity-based air resistance force class
  */
 public class AirResistance extends UniversalForce {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private double resistance;
 
+    // =================================================================================
+    // Resistance
+    // =================================================================================
     /**
      * Get the resistance value of this force
      *
@@ -27,6 +33,9 @@ public class AirResistance extends UniversalForce {
         this.resistance = resistance;
     }
 
+    // =================================================================================
+    // Constructor
+    // =================================================================================
     /**
      * Create a new air resistance force with given resistance factor
      *
@@ -36,6 +45,9 @@ public class AirResistance extends UniversalForce {
         this.setResistance(resistance);
     }
 
+    // =================================================================================
+    // Apply acceleration
+    // =================================================================================
     @Override
     public void applyAcceleration(double dt) {
         for (Body b : getBodies()) {

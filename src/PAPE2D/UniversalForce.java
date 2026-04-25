@@ -7,8 +7,15 @@ import java.util.List;
  * A universal force generator that acts on all bodies at once
  */
 public abstract class UniversalForce {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     List<Body> bodies = new ArrayList<>();
 
+
+    // =================================================================================
+    // Getters
+    // =================================================================================
     /**
      * Get the list of bodies
      *
@@ -18,6 +25,9 @@ public abstract class UniversalForce {
         return bodies;
     }
 
+    // =================================================================================
+    // Bodies
+    // =================================================================================
     /**
      * Add a body to the universal force's stored list
      *
@@ -36,6 +46,9 @@ public abstract class UniversalForce {
         bodies.remove(body);
     }
 
+    // =================================================================================
+    // Abstract methods
+    // =================================================================================
     /**
      * Apply this universal force's acceleration over given time-step
      *

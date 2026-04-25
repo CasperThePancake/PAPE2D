@@ -8,8 +8,14 @@ import PAPE2D.helper.Vector2;
  * A basic gravity force pulling all bodies in a world down
  */
 public class Gravity extends UniversalForce {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     double g = 9.81;
 
+    // =================================================================================
+    // Constructors
+    // =================================================================================
     /**
      * Create a new gravity force with given g value
      *
@@ -25,6 +31,9 @@ public class Gravity extends UniversalForce {
     public Gravity() {
     }
 
+    // =================================================================================
+    // G
+    // =================================================================================
     /**
      * Get the value of g for this gravity force
      *
@@ -43,6 +52,9 @@ public class Gravity extends UniversalForce {
         this.g = g;
     }
 
+    // =================================================================================
+    // Apply acceleration
+    // =================================================================================
     @Override
     public void applyAcceleration(double dt) {
         Vector2 gravity = new Vector2(0,-getG());

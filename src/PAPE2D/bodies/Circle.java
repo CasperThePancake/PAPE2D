@@ -9,8 +9,14 @@ import java.util.List;
  * Circle body class
  */
 public class Circle extends Body {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private double radius;
 
+    // =================================================================================
+    // Constructors
+    // =================================================================================
     /**
      * Create a circle with given radius, position, velocity, angle, angular velocity, and mass
      *
@@ -38,6 +44,9 @@ public class Circle extends Body {
         this.setRadius(radius);
     }
 
+    // =================================================================================
+    // Radius
+    // =================================================================================
     public double getRadius() {
         return radius;
     }
@@ -46,12 +55,20 @@ public class Circle extends Body {
         this.radius = radius;
     }
 
+    // =================================================================================
+    // Body necessities
+    // =================================================================================
     public static double calculateInertiaMoment(double mass, double radius) {
         return 0.5 * mass * radius * radius;
     }
 
     public static Vector2 calculateOriginVector() {
         return new Vector2(0,0);
+    }
+
+    @Override
+    public void updateInternally() {
+        // Nothing...
     }
 
     @Override

@@ -13,11 +13,17 @@ import java.util.List;
  * Polygon body class
  */
 public class Polygon extends Body {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private List<Vector2> internalVertices = new ArrayList<>();
     private List<Vector2> internalEdges = new ArrayList<>();
     private List<Vector2> worldVertices = new ArrayList<>();
     private double area;
 
+    // =================================================================================
+    // Constructors
+    // =================================================================================
     /**
      * Create a polygon with given list of vertices, position, velocity, angle, angular velocity, and mass
      *
@@ -74,6 +80,9 @@ public class Polygon extends Body {
         this(vertices,position, velocity, 0, 0, mass);
     }
 
+    // =================================================================================
+    // Area
+    // =================================================================================
     public double getArea() {
         return area;
     }
@@ -82,6 +91,20 @@ public class Polygon extends Body {
         this.area = calculateArea(vertices);
     }
 
+    public static double calculateArea(List<Vector2> vertices) {
+        // Calculate shape area
+        double area = 0;
+        int N = vertices.size();
+        for (int i = 0; i < N; i++) {
+            area = area + vertices.get(i).getX() * vertices.get((i+1) % N).getY() - vertices.get((i+1) % N).getX() * vertices.get(i).getY();
+        }
+
+        return area;
+    }
+
+    // =================================================================================
+    // Vertices
+    // =================================================================================
     /**
      * Get the internal vertex vectors (from real origin/COM to vertices, non-rotated) for this polygon
      *
@@ -131,6 +154,9 @@ public class Polygon extends Body {
         return internalEdges;
     }
 
+    // =================================================================================
+    // Convexity
+    // =================================================================================
     /**
      * Check if a given list of vertices forms a convex polygon
      *
@@ -160,6 +186,9 @@ public class Polygon extends Body {
         return connect1.getX() * connect2.getY() - connect1.getY() * connect2.getX();
     }
 
+    // =================================================================================
+    // Center of mass
+    // =================================================================================
     /**
      * Calculate the center of mass for this polygon
      *
@@ -183,17 +212,9 @@ public class Polygon extends Body {
         return new Vector2(xCOM,yCOM);
     }
 
-    public static double calculateArea(List<Vector2> vertices) {
-        // Calculate shape area
-        double area = 0;
-        int N = vertices.size();
-        for (int i = 0; i < N; i++) {
-            area = area + vertices.get(i).getX() * vertices.get((i+1) % N).getY() - vertices.get((i+1) % N).getX() * vertices.get(i).getY();
-        }
-
-        return area;
-    }
-
+    // =================================================================================
+    // Moment of inertia
+    // =================================================================================
     /**
      * Calculate the moment of inertia for this polygon
      *
@@ -221,6 +242,9 @@ public class Polygon extends Body {
         return j * mass/area;
     }
 
+    // =================================================================================
+    // Body necessities
+    // =================================================================================
     /**
      * Calculate the origin vector from user origin to real origin
      *
