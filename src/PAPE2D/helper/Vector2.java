@@ -217,4 +217,26 @@ public class Vector2 {
         }
         return this;
     }
+
+    /**
+     * Return this vector's cross product with the 3D vector (0,0,z) for given z
+     *
+     * @param z Given z value
+     *
+     * @return (x,y) part of cross product (x,y,0) = this x (0,0,z)
+     */
+    public Vector2 cross(double z) {
+        return new Vector2(-z * this.getY(), z*this.getX());
+    }
+
+    /**
+     * Return the (only) z component of this vector's cross product with a given other vector
+     *
+     * @param other Given other vector
+     *
+     * @return z of (0,0,z) = this x other
+     */
+    public double cross(Vector2 other) {
+        return this.getX() * other.getY() - this.getY() * other.getX();
+    }
 }

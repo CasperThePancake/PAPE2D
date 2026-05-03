@@ -166,8 +166,6 @@ public abstract class Body {
      * Add a deltaV to this body's velocity
      *
      * @param deltaVelocity Given change in velocity
-     *
-     * @note This method is package-private, for use in solver.
      */
     public void addVelocity(Vector2 deltaVelocity) {
         setVelocity(getVelocity().plus(deltaVelocity));
@@ -207,6 +205,15 @@ public abstract class Body {
      */
     public void setAngularVelocity(double angularVelocity) {
         this.angularVelocity = angularVelocity;
+    }
+
+    /**
+     * Add a deltaV to this body's angular velocity
+     *
+     * @param deltaAngularVelocity Given change in angular velocity
+     */
+    public void addAngularVelocity(double deltaAngularVelocity) {
+        setAngularVelocity(getAngularVelocity()+deltaAngularVelocity);
     }
 
     /**

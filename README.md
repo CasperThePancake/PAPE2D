@@ -23,10 +23,12 @@ My end goal with the project is to recreate the first level of Angry Birds with 
 - [x] Implement Gravity force
 - [x] Implement AirResistance force
 - [x] Implement Spring force
-- [ ] Implement Constraint
-- [ ] Implement types of constraints
-- [ ] Implement constraint solver logic
-- [ ] Implement full simulation logic
+- [x] Implement Constraint
+- [x] Implement constraint solver logic
+- [x] Implement DistanceConstraint
+- [ ] Implement ContactConstraint
+- [ ] Implement FrictionConstraint
+- [ ] Implement remaining methods
 - [ ] Write a rendering method
 - [ ] Perform loads of tests
 - [ ] Create Angry Birds

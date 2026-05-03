@@ -54,7 +54,7 @@ public class World {
      *
      * @param dt Length of time-step in seconds
      */
-    public void step(double dt) {
+    public void step(double dt, double beta, int detail) {
         // Perform broad phase collision detection
         List<PotentialCollidingPair> potentialPairs = broadPhase.getPotentialCollidingPairs();
 
@@ -75,11 +75,23 @@ public class World {
             localForce.applyAcceleration(dt);
         }
 
-        // Iterate over all constraints (thus J) multiple times
+        // Initialize every constraint's solving tech
+        for (Constraint c : constraints) {
+            c.initConstraint(beta,dt);
+        }
+
+        // Iterate over all constraints (thus J) multiple times (amount determined by 'detail' argument)
+        for (int i = 0; i < detail; i++) {
+            for (Constraint c : constraints) {
+                c.updateConstraint();
+            }
+        }
 
         // Perform simple step in time
-
-        // Update associations with new positions/velocities (?)
+        for (Body b : bodies) {
+            b.setPosition(b.getPosition().plus(b.getVelocity().times(dt)));
+            b.setAngle(b.getAngle()+dt*b.getAngularVelocity());
+        }
 
         // Update each body internally for next step
         for (Body b : bodies) {
