@@ -1,36 +1,61 @@
 # PAPE2D
-### Pretty Average 2D Physics Engine
 
-PAPE2D is a 2D constraint-based, rigid-body physics engine, similar to Box2D. It is built from the ground up with no external physics libraries.
+### *Pretty Average 2D Physics Engine*
 
-I'm currently hard at work developing the first working version of PAPE2D, together with a full textbook course on the physics behind it. Keep in mind I also have a master in physics to study for, so progress comes in sporadic bursts!
+[^status-badge]: ![Project Status](https://img.shields.io/badge/Status-In_Active_Development-orange?style=flat-square)
+[^license-badge]: ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
+[^language-badge]: ![Language](https://img.shields.io/badge/Language-C++-00599C?style=flat-square)
 
-My end goal with the project is to recreate the first level of Angry Birds with the engine, a true test of good physics!
+PAPE2D is a custom, constraint-based 2D rigid-body physics engine built entirely from scratch. Inspired by engines like Box2D, this project avoids external physics libraries to focus on a pure, bottom-up implementation of fundamental rigid-body dynamics.
 
-###### Research started: December 24th, 2025
-###### Development started: March 29th, 2026
+---
 
-### Self-checklist (in order)
-- [x] Implement Sweep And Prune
-- [x] Implement abstract Body
-- [x] Implement Circle
-- [x] Implement Polygon
-- [x] Implement Rectangle
-- [x] Implement Square
-- [x] Implement SAT
+## 🚀 The Vision
+
+I am currently developing the foundation of PAPE2D alongside a comprehensive, textbook-style course detailing the physics and mathematics powering the engine. 
+
+* **The Ultimate Goal:** Recreate the first level of *Angry Birds* using PAPE2D—the definitive benchmark for a reliable 2D physics engine.
+* **Development Note:** Progress comes in sporadic bursts between balancing this project and my Master’s degree in Physics!
+
+---
+
+## 📅 Timeline
+
+| Milestone | Date |
+| :--- | :--- |
+| **Research Initiated** | December 24, 2025 |
+| **Development Started** | March 29, 2026 |
+
+---
+
+## 🛠️ Roadmap & Progress
+
+### Core & Collision Detection
+- [x] Implement Sweep and Prune (Broadphase)
+- [x] Implement abstract `Body` class
+- [x] Implement `Circle` primitive
+- [x] Implement `Polygon` primitive
+- [x] Implement `Rectangle` & `Square` primitives
+- [x] Implement Separating Axis Theorem (SAT / Narrowphase)
+
+### Dynamics & Forces
 - [x] Implement basic solver logic
-- [x] Implement ForceGenerator
-- [x] Implement Gravity force
-- [x] Implement AirResistance force
-- [x] Implement Spring force
-- [x] Implement Constraint
-- [x] Implement constraint solver logic
-- [x] Implement DistanceConstraint
-- [x] Implement ContactConstraint
-- [ ] Implement FrictionConstraint
-- [ ] Implement remaining methods
-- [ ] Write a rendering method
-- [ ] Perform loads of tests
-- [ ] Create Angry Birds
+- [x] Implement `ForceGenerator` base
+- [x] Implement `Gravity` force
+- [x] Implement `AirResistance` force
+- [x] Implement `Spring` force
 
-More added along the way...
+### Constraints & Resolution
+- [x] Implement abstract `Constraint` class
+- [x] Implement constraint solver logic
+- [x] Implement `DistanceConstraint`
+- [x] Implement `ContactConstraint`
+- [ ] Implement `FrictionConstraint`
+
+### Next Steps & Application
+- [ ] Implement remaining core methods
+- [ ] Write a dedicated rendering pipeline
+- [ ] Perform extensive stress-testing and validation
+- [ ] Build the *Angry Birds* demonstration
+
+> *More milestones will be added as the engine evolves.*
