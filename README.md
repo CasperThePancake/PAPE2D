@@ -26,7 +26,7 @@ My end goal with the project is to recreate the first level of Angry Birds with 
 - [x] Implement Constraint
 - [x] Implement constraint solver logic
 - [x] Implement DistanceConstraint
-- [ ] Implement ContactConstraint
+- [x] Implement ContactConstraint
 - [ ] Implement FrictionConstraint
 - [ ] Implement remaining methods
 - [ ] Write a rendering method

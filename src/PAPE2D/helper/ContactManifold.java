@@ -12,6 +12,8 @@ public class ContactManifold {
     private final Body body2;
     private final Vector2 contactPointRelativeBody1;
     private final Vector2 contactPointRelativeBody2;
+    private final Vector2 normalVector;
+    private final Vector2 tangentVector;
 
     // =================================================================================
     // Constructor
@@ -24,12 +26,16 @@ public class ContactManifold {
      * @param penetrationDepth Given penetration depth
      * @param body1 Given first body
      * @param body2 Given second body
+     * @param normalVector Given normal vector
+     * @param tangentVector Given tangent vector
      */
-    public ContactManifold(Vector2 contactPoint, double penetrationDepth, Body body1, Body body2) {
+    public ContactManifold(Vector2 contactPoint, double penetrationDepth, Body body1, Body body2, Vector2 normalVector, Vector2 tangentVector) {
         this.contactPoint = contactPoint;
         this.penetrationDepth = penetrationDepth;
         this.body1 = body1;
         this.body2 = body2;
+        this.normalVector = normalVector;
+        this.tangentVector = tangentVector;
         this.contactPointRelativeBody1 = body1.getRelativePosition(contactPoint);
         this.contactPointRelativeBody2 = body2.getRelativePosition(contactPoint);
     }
@@ -110,5 +116,31 @@ public class ContactManifold {
      */
     public Vector2 getContactPointRelativeBody2() {
         return contactPointRelativeBody2;
+    }
+
+    // =================================================================================
+    // Normal vector
+    // =================================================================================
+
+    /**
+     * Get the normal vector for this contact manifold
+     *
+     * @return Normal vector for this contact manifold
+     */
+    public Vector2 getNormalVector() {
+        return normalVector;
+    }
+
+    // =================================================================================
+    // Tangent vector
+    // =================================================================================
+
+    /**
+     * Get the tangent vector for this contact manifold
+     *
+     * @return Tangent vector for this contact manifold
+     */
+    public Vector2 getTangentVector() {
+        return tangentVector;
     }
 }

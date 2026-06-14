@@ -63,8 +63,13 @@ public class World {
 
         // Initialize list of all constraints
         List<Constraint> constraints = new ArrayList<>(List.copyOf(staticConstraints)); // Begin with the static constraints
-        constraints.addAll(ContactConstraint.createConstraints(contactManifolds));
-        constraints.addAll(FrictionConstraint.createConstraints(contactManifolds)); // WIP
+        List<ContactConstraint> contactConstraints = ContactConstraint.createConstraints(contactManifolds); // Then the contact constraints, based on collision results
+        for (ContactConstraint c : contactConstraints) {
+            constraints.add(c);
+            FrictionConstraint associatedFrictionConstraint = c.createFrictionConstraint(); // Friction constraints created here, to be associated properly with their contacts
+            c.setMyFrictionConstraint(associatedFrictionConstraint);
+            constraints.add(associatedFrictionConstraint);
+        }
 
         // Calculate unconstrained velocity (= current velocity + unconstrained acceleration * dt)
         for (UniversalForce universalForce : universalForces) {

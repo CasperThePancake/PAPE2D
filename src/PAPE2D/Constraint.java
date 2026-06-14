@@ -9,7 +9,7 @@ public abstract class Constraint {
     // =================================================================================
 
     // Constraint holds references to the bodies it operates on (defined in subclasses)
-    private double J = 0;
+    protected double J = 0;
     private double currentBias;
 
     // =================================================================================
