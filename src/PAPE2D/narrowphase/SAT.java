@@ -127,8 +127,8 @@ public class SAT extends NarrowPhaseCollisionSystem {
         List<ContactManifold> contactManifolds = new ArrayList<>();
 
         for (int i = 0; i < contactPoints.size(); i++) {
-            contactManifolds.add(new ContactManifold(contactPoints.get(i), penetrationDepths.get(i), potentialCollidingPair.getBody1(), potentialCollidingPair.getBody1()));
-        }
+            contactManifolds.add(new ContactManifold(contactPoints.get(i), penetrationDepths.get(i), referenceBody, incidentBody, normal, tangent));
+        } // Normal points reference > incident, so as contacts enforce n * (v2-v1) this should be from body 1 to body 2, meaning reference=body1, incident=body2
 
         return contactManifolds;
     }

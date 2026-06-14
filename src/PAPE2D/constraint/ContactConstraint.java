@@ -115,7 +115,7 @@ public class ContactConstraint extends DynamicConstraint {
         double inertia2 = contactManifold.getBody2().getInertiaMoment();
 
         double numerator = normal.dot(body2speed.plus(body2rotSpeed).minus(body1speed).minus(body1rotSpeed));
-        double denominator = 1/mass1 + 1/mass2 + Math.abs(rel1CrossN)*Math.abs(rel1CrossN)/inertia1 + Math.abs(rel2CrossN)*Math.abs(rel2CrossN)/inertia2;
+        double denominator = 1/mass1 + 1/mass2 + rel1CrossN*rel1CrossN/inertia1 + rel2CrossN*rel2CrossN/inertia2;
 
         return -(numerator+getCurrentBias())/denominator;
     }
