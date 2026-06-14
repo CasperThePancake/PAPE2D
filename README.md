@@ -2,9 +2,7 @@
 
 ### *Pretty Average 2D Physics Engine*
 
-[^status-badge]: ![Project Status](https://img.shields.io/badge/Status-In_Active_Development-orange?style=flat-square)
-[^license-badge]: ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
-[^language-badge]: ![Language](https://img.shields.io/badge/Language-C++-00599C?style=flat-square)
+![GitHub last commit](https://img.shields.io/github/last-commit/CasperThePancake/PAPE2D) ![Project Status](https://img.shields.io/badge/Status-In_Active_Development-orange?style=flat-square) ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square) [![Java](https://img.shields.io/badge/Java-%23ED8B00.svg?logo=openjdk&logoColor=white)](#)
 
 PAPE2D is a custom, constraint-based 2D rigid-body physics engine built entirely from scratch. Inspired by engines like Box2D, this project avoids external physics libraries to focus on a pure, bottom-up implementation of fundamental rigid-body dynamics.
 
