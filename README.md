@@ -48,7 +48,7 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
 - [x] Implement constraint solver logic
 - [x] Implement `DistanceConstraint`
 - [x] Implement `ContactConstraint`
-- [ ] Implement `FrictionConstraint`
+- [x] Implement `FrictionConstraint`
 
 ### Next Steps & Application
 - [ ] Implement remaining core methods

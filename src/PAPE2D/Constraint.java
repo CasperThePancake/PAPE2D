@@ -19,6 +19,10 @@ public abstract class Constraint {
         return currentBias;
     }
 
+    public double getJ() {
+        return J;
+    }
+
     // =================================================================================
     // Constraint solving
     // =================================================================================
