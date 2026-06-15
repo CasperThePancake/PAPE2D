@@ -23,15 +23,19 @@ public class World {
     private NarrowPhaseCollisionSystem narrowPhase;
     private List<UniversalForce> universalForces = new ArrayList<>();
     private List<LocalForce> localForces = new ArrayList<>();
+    private List<TickListener> preUpdateListeners = new ArrayList<>();
+    private List<TickListener> postUpdateListeners = new ArrayList<>();
+    private double beta;
+    private double detail;
 
     // =================================================================================
     // Constructors
     // =================================================================================
     /**
-     * Create a world with the latest recommended settings
+     * Create a world with recommended settings
      */
     public World() {
-        this(new SweepAndPrune(), new SAT());
+        this(new SweepAndPrune(), new SAT(), 0.5, 5);
     }
 
     /**
@@ -39,10 +43,14 @@ public class World {
      *
      * @param broadPhase Given broad phase collision system
      * @param narrowPhase Given narrow phase collision system
+     * @param beta Given beta value for Baumgarte stabilization (0 for no stabilization)
+     * @param detail Given amount of all-constraint iterations for dynamics solver per step
      */
-    public World(BroadPhaseCollisionSystem broadPhase, NarrowPhaseCollisionSystem narrowPhase) {
+    public World(BroadPhaseCollisionSystem broadPhase, NarrowPhaseCollisionSystem narrowPhase, double beta, double detail) {
         this.setBroadPhase(broadPhase);
         this.setNarrowPhase(narrowPhase);
+        this.beta = beta;
+        this.detail = detail;
     }
 
     // =================================================================================
@@ -54,7 +62,12 @@ public class World {
      *
      * @param dt Length of time-step in seconds
      */
-    public void step(double dt, double beta, int detail) {
+    public void step(double dt, PhysicsLoop linkedLoop) {
+        // Pre-update ticking
+        for (TickListener tickListener : preUpdateListeners) {
+            tickListener.onTick(this,linkedLoop,dt);
+        }
+
         // Perform broad phase collision detection
         List<PotentialCollidingPair> potentialPairs = broadPhase.getPotentialCollidingPairs();
 
@@ -80,7 +93,7 @@ public class World {
             localForce.applyAcceleration(dt);
         }
 
-        // Initialize every constraint's solving tech
+        // Initialize every constraint's solving tech (mainly initializes Baumgarte term)
         for (Constraint c : constraints) {
             c.initConstraint(beta,dt);
         }
@@ -105,6 +118,11 @@ public class World {
 
         // Update the broad phase system for next step
         broadPhase.update();
+
+        // Post-update ticking
+        for (TickListener tickListener : postUpdateListeners) {
+            tickListener.onTick(this,linkedLoop,dt);
+        }
     }
 
     // =================================================================================
@@ -167,5 +185,142 @@ public class World {
      */
     private void setNarrowPhase(NarrowPhaseCollisionSystem narrowPhase) {
         this.narrowPhase = narrowPhase;
+    }
+
+    // =================================================================================
+    // Static constraints
+    // =================================================================================
+
+    /**
+     * Add a given static constraint to the world
+     *
+     * @param staticConstraint Given static constraint
+     */
+    public void addStaticConstraint(StaticConstraint staticConstraint) {
+        this.staticConstraints.add(staticConstraint);
+    }
+
+    /**
+     * Remove all static constraints from this world
+     */
+    public void clearStaticConstraints() {
+        this.staticConstraints.clear();
+    }
+
+    /**
+     * Remove the given static constraint from the world, if it exists
+     *
+     * @param staticConstraint Given static constraint
+     */
+    public void removeStaticConstraint(StaticConstraint staticConstraint) {
+        this.staticConstraints.remove(staticConstraint);
+    }
+
+    // =================================================================================
+    // Forces
+    // =================================================================================
+
+    /**
+     * Add the given local force generator to the world
+     *
+     * @param localForce Given local force generator
+     */
+    public void addLocalForce(LocalForce localForce) {
+        this.localForces.add(localForce);
+    }
+
+    /**
+     * Remove all local forces from this world
+     */
+    public void clearLocalForces() {
+        this.localForces.clear();
+    }
+
+    /**
+     * Remove the given local force generator from the world, if it exists
+     *
+     * @param localForce Given local force generator
+     */
+    public void removeLocalForce(LocalForce localForce) {
+        this.localForces.remove(localForce);
+    }
+
+    /**
+     * Add the given universal force generator to the world
+     *
+     * @param universalForce Given universal force generator
+     */
+    public void addUniversalForce(UniversalForce universalForce) {
+        this.universalForces.add(universalForce);
+    }
+
+    /**
+     * Remove all universal forces from this world
+     */
+    public void clearUniversalForces() {
+        this.universalForces.clear();
+    }
+
+    /**
+     * Remove the given universal force generator from the world, if it exists
+     *
+     * @param universalForce Given universal force generator
+     */
+    public void removeUniversalForce(UniversalForce universalForce) {
+        this.universalForces.remove(universalForce);
+    }
+
+    // =================================================================================
+    // TickListeners
+    // =================================================================================
+
+    /**
+     * Add the given tick listener to the pre-update listener list
+     *
+     * @param tickListener Given tick listener
+     */
+    public void addPreUpdateTickListener(TickListener tickListener) {
+        this.preUpdateListeners.add(tickListener);
+    }
+
+    /**
+     * Remove all pre-update tick listeners from this world
+     */
+    public void clearPreUpdateTickListeners() {
+        this.preUpdateListeners.clear();
+    }
+
+    /**
+     * Remove the given tick listener from the pre-update listener list
+     *
+     * @param tickListener Given tick listener
+     */
+    public void removePreUpdateTickListener(TickListener tickListener) {
+        this.preUpdateListeners.remove(tickListener);
+    }
+
+    /**
+     * Add the given tick listener to the post-update listener list
+     *
+     * @param tickListener Given tick listener
+     */
+    public void addPostUpdateTickListener(TickListener tickListener) {
+        this.postUpdateListeners.add(tickListener);
+    }
+
+    /**
+     * Remove all post-update tick listeners from this world
+     */
+    public void clearPostUpdateTickListeners() {
+        this.postUpdateListeners.clear();
+    }
+
+    /**
+     * Remove the given tick listener from the post-update listener list
+     *
+     * @param tickListener Given tick listener
+     */
+    public void removePostUpdateTickListener(TickListener tickListener) {
+        this.postUpdateListeners.remove(tickListener);
     }
 }

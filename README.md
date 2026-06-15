@@ -51,7 +51,7 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
 - [x] Implement `FrictionConstraint`
 
 ### Next Steps & Application
-- [ ] Implement remaining core methods
+- [x] Implement remaining core methods
 - [ ] Write a dedicated rendering pipeline
 - [ ] Perform extensive stress-testing and validation
 - [ ] Build the *Angry Birds* demonstration
