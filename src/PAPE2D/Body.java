@@ -311,4 +311,9 @@ public abstract class Body {
     public abstract Vector2 getClosestReferenceTo(Vector2 position);
 
     public abstract Double[] getProjectionEdges(Vector2 projectionAxis);
+
+    // =================================================================================
+    // Rendering
+    // =================================================================================
+    public abstract void render(PhysicsLoop physicsLoop);
 }

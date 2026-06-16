@@ -1,5 +1,7 @@
 package PAPE2D;
 
+import PAPE2D.helper.Vector2;
+
 import javax.swing.JFrame;
 import java.awt.Canvas;
 import java.awt.Dimension;
@@ -9,7 +11,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Arrays;
 
+/**
+ * Physics loop class linked to a World that runs, simulates, and renders its contents in a thread
+ */
 public class PhysicsLoop extends Canvas implements Runnable {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
 
@@ -26,6 +34,13 @@ public class PhysicsLoop extends Canvas implements Runnable {
     private long lastTime = 0;
     private double accumulator = 0.0;
 
+    private double camX = 0;
+    private double camY = 0;
+    private double camZoom = 1;
+
+    // =================================================================================
+    // Constructors & initialization
+    // =================================================================================
     public PhysicsLoop(World world, int targetFps) {
         this.world = world;
         this.targetDt = 1.0 / targetFps;
@@ -51,6 +66,103 @@ public class PhysicsLoop extends Canvas implements Runnable {
         frame.setVisible(true);
     }
 
+    // =================================================================================
+    // Camera methods
+    // =================================================================================
+
+    /**
+     * Convert world coordinates to their corresponding screen pixel coordinates
+     *
+     * @param worldCoords Given tuple of world coordinates (x,y)
+     *
+     * @return Tuple of pixel coordinates (x,y) corresponding to the given world coordinates
+     *
+     * @note Method does not check whether given world coordinates appear on the screen, so extra boundary checks are recommended!
+     */
+    public double[] worldToScreenCoords(double[] worldCoords) {
+        double worldX = worldCoords[0];
+        double worldY = worldCoords[1];
+        return new double[]{(worldX - camX)*camZoom + (double) WIDTH/2, (worldY - camY)*camZoom + (double) HEIGHT/2};
+    }
+
+    /**
+     * Convert screen pixel coordinates to their corresponding world coordinates
+     *
+     * @param screenCoords Given tuple of screen pixel coordinates (x,y)
+     *
+     * @return Tuple of world coordinates (x,y) corresponding to the given screen pixel coordinates
+     *
+     * @throws IllegalArgumentException If given camera coordinates fall outside the screen boundaries
+     */
+    public double[] screenToWorldCoords(double[] screenCoords) throws IllegalArgumentException {
+        double screenX = screenCoords[0];
+        double screenY = screenCoords[1];
+
+        // Valid coordinates check
+        if (screenX < 0 || screenX > WIDTH || screenY < 0 || screenY > HEIGHT) {
+            throw new IllegalArgumentException("Given camera coordinates fall outside the screen boundaries!");
+        }
+
+        return new double[]{(screenX-(double) WIDTH/2) / camZoom + camX, (screenY-(double) HEIGHT/2) / camZoom + camY};
+    }
+
+    /**
+     * Get the current world x coordinate corresponding to the middle of the screen
+     *
+     * @return Current world x coordinate corresponding to the middle of the screen
+     */
+    public double getCamX() {
+        return camX;
+    }
+
+    /**
+     * Set the camera's x coordinate
+     *
+     * @param camX World x coordinate to appear at the center of the screen
+     */
+    public void setCamX(double camX) {
+        this.camX = camX;
+    }
+
+    /**
+     * Get the current world y coordinate corresponding to the center of the screen
+     *
+     * @return Current world y coordinate corresponding to the center of the screen
+     */
+    public double getCamY() {
+        return camY;
+    }
+
+    /**
+     * Set the camera's y coordinate
+     *
+     * @param camY World y coordinate to appear at the center of the screen
+     */
+    public void setCamY(double camY) {
+        this.camY = camY;
+    }
+
+    /**
+     * Get the current camera zoom level, corresponding to #pixels / #units
+     *
+     * @return Camera zoom level
+     */
+    public double getCamZoom() {
+        return camZoom;
+    }
+
+    /**
+     * Set the camera zoom level, corresponding to #pixels / #units
+     *
+     * @param camZoom Given camera zoom level
+     */
+    public void setCamZoom(double camZoom) {
+        this.camZoom = camZoom;
+    }
+
+    // =================================================================================
+    // Playback control
+    // =================================================================================
     /**
      * Start the physics loop
      */
@@ -76,6 +188,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
         System.exit(0);
     }
 
+    // =================================================================================
+    // Running
+    // =================================================================================
     @Override
     public void run() {
         lastTime = System.nanoTime();
@@ -106,6 +221,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
         }
     }
 
+    // =================================================================================
+    // Rendering
+    // =================================================================================
     private void render() {
         // Create buffer strategy
         BufferStrategy bs = getBufferStrategy();
@@ -118,7 +236,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
         Arrays.fill(pixels, 0x222222);
 
         // Draw bodies
-        // WIP
+        for (Body b : world.getBodies()) {
+            b.render(this);
+        }
 
         // Push the raw pixel data to the native monitor hardware
         Graphics g = bs.getDrawGraphics();
@@ -129,8 +249,48 @@ public class PhysicsLoop extends Canvas implements Runnable {
 
     // RENDERING UTILITIES
 
+    /**
+     * Base single pixel drawing method
+     *
+     * @param x Given screen x coordinate to draw
+     * @param y Given screen y coordinate to draw
+     * @param color Given color to draw
+     */
     public void setPixel(int x, int y, int color) {
         if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
         pixels[y * WIDTH + x] = color;
+    }
+
+    /**
+     * Draw a (rotated) rectangle on the screen, with (x,y) corresponding to the top-left corner if unrotated
+     *
+     * @param x Given unrotated top-left corner x coordinate
+     * @param y Given unrotated top-left corner y coordinate
+     * @param width Given rectangle width
+     * @param height Given rectangle height
+     * @param angle Given rotation angle
+     */
+    public void drawRectangle(double x, double y, double width, double height, double angle) {
+        // WIP (could just use drawPolygon() unless separate implementation significantly saves computation)
+    }
+
+    /**
+     * Draw a polygon on the screen, with given list of vertices (screen pixel coordinates)
+     *
+     * @param vertices Given list of vertices
+     */
+    public void drawPolygon(Vector2[] vertices) {
+        // WIP
+    }
+
+    /**
+     * Draw a circle on the screen, with (x,y) corresponding to its center
+     *
+     * @param x Given center x coordinate
+     * @param y Given center y coordinate
+     * @param radius Given circle radius
+     */
+    public void drawCircle(double x, double y, double radius) {
+        // WIP
     }
 }

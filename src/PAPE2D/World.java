@@ -159,6 +159,15 @@ public class World {
         }
     }
 
+    /**
+     * Get the list of all bodies present in this world
+     *
+     * @return List of all bodies present in this world
+     */
+    public List<Body> getBodies() {
+        return bodies;
+    }
+
     // =================================================================================
     // BroadPhase
     // =================================================================================
