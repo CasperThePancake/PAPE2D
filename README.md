@@ -52,7 +52,8 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
 
 ### Next Steps & Application
 - [x] Implement remaining core methods
-- [ ] Write a dedicated rendering pipeline
+- [x] Write geometry rendering methods (with antialiasing)
+- [ ] Implement rendering per `Body` class
 - [ ] Perform extensive stress-testing and validation
 - [ ] Build the *Angry Birds* demonstration
 

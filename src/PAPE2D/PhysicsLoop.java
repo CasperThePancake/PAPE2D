@@ -107,6 +107,23 @@ public class PhysicsLoop extends Canvas implements Runnable {
     }
 
     /**
+     * Convert given alpha, red, green, blue values to 32-bit color integer
+     *
+     * @param a Alpha value (0-255)
+     *
+     * @param r Red value (0-255)
+     *
+     * @param g Green value (0-255)
+     *
+     * @param b Blue value (0-255)
+     *
+     * @return According 32-bit color integer
+     */
+    public static int argb(int a, int r, int g, int b) {
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    /**
      * Get the current world x coordinate corresponding to the middle of the screen
      *
      * @return Current world x coordinate corresponding to the middle of the screen
@@ -262,35 +279,151 @@ public class PhysicsLoop extends Canvas implements Runnable {
     }
 
     /**
-     * Draw a (rotated) rectangle on the screen, with (x,y) corresponding to the top-left corner if unrotated
-     *
-     * @param x Given unrotated top-left corner x coordinate
-     * @param y Given unrotated top-left corner y coordinate
-     * @param width Given rectangle width
-     * @param height Given rectangle height
-     * @param angle Given rotation angle
-     */
-    public void drawRectangle(double x, double y, double width, double height, double angle) {
-        // WIP (could just use drawPolygon() unless separate implementation significantly saves computation)
-    }
-
-    /**
      * Draw a polygon on the screen, with given list of vertices (screen pixel coordinates)
      *
      * @param vertices Given list of vertices
      */
     public void drawPolygon(Vector2[] vertices) {
-        // WIP
+        int count = vertices.length;
+
+        // "Sort" vertices vertically
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        int highestVertexIndex = 0;
+
+        for (int i = 0; i < count; i++) {
+            Vector2 vec = vertices[i];
+            if (vec.getY() < minY) {
+                minY = (int) Math.floor(vec.getY());
+                highestVertexIndex = i;
+            }
+
+            if (vec.getY() > maxY) {
+                maxY = (int) Math.ceil(vec.getY());
+            }
+        }
+
+        // Clip to screen boundaries to prevent out-of-bounds array crashes
+        if (minY < 0) minY = 0;
+        if (maxY >= HEIGHT) maxY = HEIGHT - 1;
+
+        // Identify starting edges (ones connected to highest vertex)
+        int leftIndex = highestVertexIndex;
+        int rightIndex = highestVertexIndex;
+
+        int leftNextIndex = (highestVertexIndex - 1 + count) % count; // The "+ count" part has no effect on modulo but is required since modulo doesn't work on negative ints
+        int rightNextIndex = (highestVertexIndex + 1) % count;
+
+        // Entry and exit tracking (easier since convex)
+        double entryX = vertices[highestVertexIndex].getX() * 4; // Using 4-subpixel rendering for antialiasing
+        double exitX = vertices[highestVertexIndex].getX() * 4;
+
+        double leftInverseSlope = calculateInverseSlope(vertices[leftIndex],vertices[leftNextIndex]) * 4; // Once again, reasoning in subpixels
+        double rightInverseSlope = calculateInverseSlope(vertices[rightIndex],vertices[rightNextIndex]) * 4;
+
+        // Start scanning down, line by line
+        for (int y = minY; y <= maxY; y++) {
+            // Check if left edge has expired
+            while (y > vertices[leftNextIndex].getY() && y < maxY) {
+                leftIndex = leftNextIndex;
+                leftNextIndex = (leftIndex - 1 + count) % count;
+                // Re-calculate the entry and slope
+                entryX = vertices[leftIndex].getX() * 4;
+                leftInverseSlope = calculateInverseSlope(vertices[leftIndex],vertices[leftNextIndex]) * 4;
+            }
+
+            // Check if right edge has expired
+            while (y > vertices[rightNextIndex].getY() && y < maxY) {
+                rightIndex = rightNextIndex;
+                rightNextIndex = (rightIndex + 1) % count;
+                // Re-calculate the exit and slope
+                exitX = vertices[rightIndex].getX() * 4;
+                rightInverseSlope = calculateInverseSlope(vertices[rightIndex],vertices[rightNextIndex]) * 4;
+            }
+
+            // Determine subpixel and pixel entry/exit properly
+            int subXStart = (int) Math.round(Math.min(entryX,exitX));
+            int subXEnd = (int) Math.round(Math.max(entryX,exitX));
+
+            int pixelXStart = subXStart / 4;
+            int pixelXEnd = subXEnd / 4;
+
+            // Fill the row, using antialiasing
+            for (int x = pixelXStart; x <= pixelXEnd; x++) {
+                int subXLeft = x * 4; // Sub-pixels for this x
+                int subXRight = x * 4 + 3;
+
+                // Determine amount of covered subpixels
+                int activeSubPixels;
+                if (subXLeft >= subXStart && subXRight <= subXEnd) {
+                    activeSubPixels = 4;
+                } else {
+                    int overlapStart = Math.max(subXLeft,subXStart);
+                    int overlapEnd = Math.min(subXRight,subXEnd);
+                    activeSubPixels = Math.max(0, overlapEnd - overlapStart + 1);
+                }
+
+                if (activeSubPixels == 0) continue; // No coverage somehow, go to next pixel
+
+                double coverage = activeSubPixels / 4.0;
+
+                // Set pixel (black 'n white)
+                setPixel(x,y,argb((int) Math.round(255*coverage), 255, 255, 255));
+            }
+
+            // Update edges using slopes
+            entryX += leftInverseSlope;
+            exitX += rightInverseSlope;
+        }
+    }
+
+    /**
+     * Calculate the inverse slope from one point to another
+     *
+     * @param fromPoint Starting point
+     * @param toPoint End point
+     *
+     * @return Inverse slope from starting point to end point (dx/dy)
+     */
+    private double calculateInverseSlope(Vector2 fromPoint, Vector2 toPoint) {
+        double x1 = fromPoint.getX(), y1 = fromPoint.getY(), x2 = toPoint.getX(), y2 = toPoint.getY();
+        if (y1 == y2) return 0;
+        return (x2 - x1) / (y2 - y1);
     }
 
     /**
      * Draw a circle on the screen, with (x,y) corresponding to its center
      *
-     * @param x Given center x coordinate
-     * @param y Given center y coordinate
+     * @param cX Given center x coordinate
+     * @param cY Given center y coordinate
      * @param radius Given circle radius
      */
-    public void drawCircle(double x, double y, double radius) {
-        // WIP
+    public void drawCircle(double cX, double cY, double radius) {
+        // Determine square that bounds the circle (for pixel looping)
+        int minX = (int) Math.max(0, Math.floor(cX - radius));
+        int maxX = (int) Math.min(WIDTH,Math.ceil(cX + radius));
+        int minY = (int) Math.max(0, Math.floor(cY - radius));
+        int maxY = (int) Math.min(HEIGHT, Math.ceil(cY + radius));
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                // Determine pixel center coordinates
+                double pX = x + 0.5;
+                double pY = y + 0.5;
+
+                // Determine distance from center
+                double d = Math.sqrt((cX - pX)*(cX - pX) + (cY - pY)*(cY - pY));
+
+                // Filling logic
+                if (d < radius - 0.5) { // Pixel fully covered
+                    setPixel(x,y,argb(255,255,255,255));
+                } else if (d > radius + 0.5) { // Pixel fully uncovered
+                    continue;
+                } else { // Partially covered: anti-aliasing
+                    double coverage = (radius + 0.5) - d;
+                    setPixel(x,y,argb((int) Math.round(255*coverage), 255, 255, 255));
+                }
+            }
+        }
     }
 }
