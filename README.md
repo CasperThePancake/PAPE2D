@@ -54,7 +54,28 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
 - [x] Implement remaining core methods
 - [x] Write geometry rendering methods (with antialiasing)
 - [x] Implement rendering per `Body` class
-- [ ] Perform extensive stress-testing and validation
+
+### Testing
+- [x] Body rendering without motion
+  - [x] Circle
+  - [x] Polygon
+  - [x] Rectangle
+  - [x] Square
+  - [x] Rotated versions
+- [ ] Fixed-velocity motion
+- [ ] Forces
+  - [ ] Gravity
+  - [ ] Air resistance
+  - [ ] Springs
+- [ ] Constraints
+  - [ ] Distance constraint
+  - [ ] Collisions
+- [ ] General checks
+  - [ ] Antialiasing
+- [ ] Bugs to fix later
+  - [ ] Semi-horizontal edges show rendering artifacts
+
+### Angry Birds
 - [ ] Build the *Angry Birds* demonstration
 
 > *More milestones will be added as the engine evolves.*

@@ -26,10 +26,9 @@ public class Polygon extends Body {
     // Constructors
     // =================================================================================
     /**
-     * Create a polygon with given list of vertices, position, velocity, angle, angular velocity, and mass
+     * Create a polygon with given list of vertices, velocity, angle, angular velocity, and mass
      *
      * @param vertices List of polygon vertices
-     * @param position Given position (corresponds with first vertex)
      * @param velocity Given velocity
      * @param angle Given rotation
      * @param angularVelocity Given rotational velocity
@@ -38,7 +37,7 @@ public class Polygon extends Body {
      * @throws IllegalArgumentException If given polygon is not convex
      *      | !isConvex(vertices)
      */
-    public Polygon(List<Vector2> vertices, Vector2 position, Vector2 velocity, double angle, double angularVelocity, double mass) throws IllegalArgumentException {
+    public Polygon(List<Vector2> vertices, Vector2 velocity, double angle, double angularVelocity, double mass) throws IllegalArgumentException {
         // 1. Create a working copy so we don't mutate the user's input list directly
         List<Vector2> workingVertices = new ArrayList<>(vertices);
         Vector2 specialPoint = vertices.getFirst(); // Important this stays first, for user origin referencing
@@ -60,25 +59,35 @@ public class Polygon extends Body {
         }
 
         // 4. Now proceed with the guaranteed CCW workingVertices
-        super(position, velocity, angle, angularVelocity, mass,
+        super(getCOM(mass,vertices), velocity, angle, angularVelocity, mass,
                 calculateInertiaMoment(mass, workingVertices),
                 calculateOriginVector(mass, workingVertices));
 
         setArea(workingVertices);
         setInternalEdges(workingVertices);
         setInternalVertices(mass, workingVertices);
+        updateInternally();
     }
 
     /**
-     * Create a polygon with given list of vertices, position, velocity, mass, and no angle
+     * Create a polygon with given list of vertices, velocity, mass, and no angle
      *
      * @param vertices List of polygon vertices
-     * @param position Given position (corresponds with first vertex)
      * @param velocity Given velocity
      * @param mass Given mass
      */
-    public Polygon(List<Vector2> vertices, Vector2 position, Vector2 velocity, double mass) {
-        this(vertices,position, velocity, 0, 0, mass);
+    public Polygon(List<Vector2> vertices, Vector2 velocity, double mass) {
+        this(vertices, velocity, 0, 0, mass);
+    }
+
+    /**
+     * Create a polygon with given list of vertices, mass, and no angle or velocity
+     *
+     * @param vertices List of polygon vertices
+     * @param mass Given mass
+     */
+    public Polygon(List<Vector2> vertices, double mass) {
+        this(vertices, new Vector2(), 0, 0, mass);
     }
 
     // =================================================================================
@@ -100,7 +109,7 @@ public class Polygon extends Body {
             area = area + vertices.get(i).getX() * vertices.get((i+1) % N).getY() - vertices.get((i+1) % N).getX() * vertices.get(i).getY();
         }
 
-        return area;
+        return area / 2;
     }
 
     // =================================================================================
@@ -129,7 +138,9 @@ public class Polygon extends Body {
             // Calculate vector from vertex 0 to vertex v
             Vector2 connect = v.minus(vertices.getFirst());
 
-            internalVertices.add(getOriginVector().times(-1).plus(connect));
+            Vector2 internalVertex = getOriginVector().times(-1).plus(connect);
+
+            internalVertices.add(internalVertex);
         }
     }
 
@@ -264,8 +275,14 @@ public class Polygon extends Body {
      * This method is run after an integration step, for internal updating beyond position/velocity/angle/angular velocity
      */
     public void updateInternally() {
-        for (int i = 0; i < getInternalVertices().size(); i++) {
-            worldVertices.set(i,getPosition().plus(getInternalVertices().get(i).rotate(getAngle())));
+        if (!worldVertices.isEmpty()) {
+            for (int i = 0; i < getInternalVertices().size(); i++) {
+                worldVertices.set(i, getPosition().plus(getInternalVertices().get(i).rotate(getAngle())));
+            }
+        } else { // First initiation of worldVertices
+            for (int i = 0; i < getInternalVertices().size(); i++) {
+                worldVertices.add(getPosition().plus(getInternalVertices().get(i).rotate(getAngle())));
+            }
         }
     }
 

@@ -82,7 +82,8 @@ public class PhysicsLoop extends Canvas implements Runnable {
     public double[] worldToScreenCoords(double[] worldCoords) {
         double worldX = worldCoords[0];
         double worldY = worldCoords[1];
-        return new double[]{(worldX - camX)*camZoom + (double) WIDTH/2, (worldY - camY)*camZoom + (double) HEIGHT/2};
+
+        return new double[]{(worldX - camX)*camZoom + (double) WIDTH/2, (double) HEIGHT/2 - (worldY - camY)*camZoom};
     }
 
     /**
@@ -249,13 +250,16 @@ public class PhysicsLoop extends Canvas implements Runnable {
             return;
         }
 
-        // Clear Screen with dark gray
-        Arrays.fill(pixels, 0x222222);
+        // Clear Screen with black
+        Arrays.fill(pixels, 0x000000);
 
         // Draw bodies
         for (Body b : world.getBodies()) {
             b.render(this);
         }
+
+        // WIP REMOVE: for testing, mark origin red
+        setPixel((int) Math.round(WIDTH / 2), (int) Math.round(HEIGHT / 2), argb(255,255,0,0));
 
         // Push the raw pixel data to the native monitor hardware
         Graphics g = bs.getDrawGraphics();
@@ -285,6 +289,10 @@ public class PhysicsLoop extends Canvas implements Runnable {
      */
     public void drawPolygon(Vector2[] vertices) {
         int count = vertices.length;
+
+//        for (Vector2 v : vertices) {
+//            IO.println("x: "+v.getX()+", y:"+v.getY());
+//        }
 
         // "Sort" vertices vertically
         int minY = Integer.MAX_VALUE;

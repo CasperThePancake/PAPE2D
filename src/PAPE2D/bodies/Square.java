@@ -34,4 +34,15 @@ public class Square extends Rectangle {
     public Square(Vector2 position, double width, Vector2 velocity, double mass) {
         this(position, width, velocity, 0, 0, mass);
     }
+
+    /**
+     * Create a square with given width, position, mass, no angle or velocity
+     *
+     * @param position Given position (corresponds with top-left corner)
+     * @param width Given width
+     * @param mass Given mass
+     */
+    public Square(Vector2 position, double width, double mass) {
+        this(position, width, new Vector2(), 0, 0, mass);
+    }
 }

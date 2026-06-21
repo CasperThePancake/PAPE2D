@@ -45,6 +45,18 @@ public class Circle extends Body {
         this.setRadius(radius);
     }
 
+    /**
+     * Create a circle with given radius, position, mass, no starting rotation or velocity
+     *
+     * @param radius Given radius
+     * @param position Given position (corresponds with circle center)
+     * @param mass Given mass
+     */
+    public Circle(double radius, Vector2 position, double mass) {
+        super(position, new Vector2(), 0, 0, mass, calculateInertiaMoment(mass,radius),calculateOriginVector());
+        this.setRadius(radius);
+    }
+
     // =================================================================================
     // Radius
     // =================================================================================
@@ -103,7 +115,7 @@ public class Circle extends Body {
     public void render(PhysicsLoop physicsLoop) {
         // Calculate pixel coordinates
         double cX = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX(),getPosition().getY()})[0];
-        double cY = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX(),getPosition().getY()})[0];
+        double cY = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX(),getPosition().getY()})[1];
 
         // Calculate radius properly
         double xFurther = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX()+getRadius(),getPosition().getY()})[0];

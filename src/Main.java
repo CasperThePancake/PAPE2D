@@ -1,8 +1,17 @@
 import PAPE2D.PhysicsLoop;
 import PAPE2D.World;
+import PAPE2D.bodies.Circle;
+import PAPE2D.bodies.Polygon;
+import PAPE2D.bodies.Rectangle;
+import PAPE2D.bodies.Square;
+import PAPE2D.helper.Vector2;
+
+import java.util.List;
 
 /**
  * Example usage of PAPE2D
+ *
+ * @note Currently being used to perform loads of tests!
  */
 public class Main {
     public static void main(String[] args) {
@@ -10,11 +19,22 @@ public class Main {
         World world = new World();
         PhysicsLoop loop = new PhysicsLoop(world, 60);
 
-        // (Add bodies, constraints, forces, ... here)
+        List<Vector2> vertices = List.of(
+                new Vector2(0, 60),    // 1. Sharp top point
+                new Vector2(45, 20),   // 2. Upper right shoulder
+                new Vector2(35, -40),  // 3. Lower right taper
+                new Vector2(0, -40),   // 4. Flat bottom edge (Midpoint)
+                new Vector2(-35, -40), // 5. Lower left taper
+                new Vector2(-45, 20)   // 6. Upper left shoulder
+        );
+        Polygon myPolygon = new Polygon(vertices,1);
 
-        // Add game or simulation logic using tick listeners
-        world.addPreUpdateTickListener((tickedWorld, tickedLoop, dt) -> {
-            // (Tick logic here)
+        world.addBody(myPolygon);
+
+        // Adding a listener directly via a lambda expression
+        world.addPreUpdateTickListener((tickedWorld, tickedPhysicsLoop, dt) -> {
+            // Rotrot
+            myPolygon.setAngle(myPolygon.getAngle()+0.01);
         });
 
         // Run the simulation
