@@ -2,6 +2,7 @@ package PAPE2D.bodies;
 
 import PAPE2D.Body;
 import PAPE2D.Optimize;
+import PAPE2D.PhysicsLoop;
 import PAPE2D.helper.Edge;
 import PAPE2D.helper.Vector2;
 
@@ -343,6 +344,17 @@ public class Polygon extends Body {
         }
 
         return new Double[]{min, max};
+    }
+
+    @Override
+    public void render(PhysicsLoop physicsLoop) {
+        List<Vector2> screenVertices = new ArrayList<>();
+
+        for (Vector2 worldVertex : worldVertices) {
+            screenVertices.add(new Vector2(physicsLoop.worldToScreenCoords(new double[]{worldVertex.getX(),worldVertex.getY()})[0], physicsLoop.worldToScreenCoords(new double[]{worldVertex.getX(),worldVertex.getY()})[1]));
+        }
+
+        physicsLoop.drawPolygon(screenVertices.toArray(new Vector2[0]));
     }
 
     public Edge findBestEdge(Vector2 outwardNormal) {

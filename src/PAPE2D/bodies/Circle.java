@@ -1,6 +1,7 @@
 package PAPE2D.bodies;
 
 import PAPE2D.Body;
+import PAPE2D.PhysicsLoop;
 import PAPE2D.helper.Vector2;
 
 import java.util.List;
@@ -96,5 +97,18 @@ public class Circle extends Body {
         double p = getPosition().dot(normalizedProjectionAxis);
 
         return new Double[]{p-getRadius(), p+getRadius()};
+    }
+
+    @Override
+    public void render(PhysicsLoop physicsLoop) {
+        // Calculate pixel coordinates
+        double cX = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX(),getPosition().getY()})[0];
+        double cY = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX(),getPosition().getY()})[0];
+
+        // Calculate radius properly
+        double xFurther = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX()+getRadius(),getPosition().getY()})[0];
+        double screenRadius = xFurther - cX;
+
+        physicsLoop.drawCircle(cX,cY,screenRadius);
     }
 }
