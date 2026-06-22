@@ -18,6 +18,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
     // =================================================================================
     @Override
     public List<ContactManifold> getContactManifolds(PotentialCollidingPair potentialCollidingPair) {
+
         // 1. Get list of axes to check from Bodies
         List<Vector2> SATAxes = potentialCollidingPair.getSATAxes();
         List<Double> overlapAmounts = new ArrayList<>();
@@ -29,7 +30,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
             Double[] body2ProjectionEdges = potentialCollidingPair.getBody2().getProjectionEdges(axis);
             if (body1ProjectionEdges[1] < body2ProjectionEdges[0] || body2ProjectionEdges[1] < body1ProjectionEdges[0]) {
                 // No overlap!
-                return null;
+                return new ArrayList<>();
             }
             // Overlap: store amount
             overlapAmounts.add(Math.min(body1ProjectionEdges[1],body2ProjectionEdges[1]) - Math.max(body1ProjectionEdges[0],body2ProjectionEdges[0]));

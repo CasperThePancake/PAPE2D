@@ -21,6 +21,8 @@ public class PhysicsLoop extends Canvas implements Runnable {
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
 
+    private double fpsPrintTimer = 0;
+
     private final World world;
     private final double targetDt;
 
@@ -216,6 +218,12 @@ public class PhysicsLoop extends Canvas implements Runnable {
         while (running) {
             long now = System.nanoTime();
             double elapsed = (now - lastTime) / 1_000_000_000.0;
+            // "FPS" display
+            fpsPrintTimer += elapsed;
+            if (fpsPrintTimer >= 1.0) {
+                IO.println("Thread (run) FPS: " + (int)(1/elapsed));
+                fpsPrintTimer = 0;
+            }
             lastTime = now;
 
             if (elapsed > 0.25) elapsed = 0.25; // Lag spike protection
@@ -290,9 +298,7 @@ public class PhysicsLoop extends Canvas implements Runnable {
     public void drawPolygon(Vector2[] vertices) {
         int count = vertices.length;
 
-//        for (Vector2 v : vertices) {
-//            IO.println("x: "+v.getX()+", y:"+v.getY());
-//        }
+        if (count < 3) return;
 
         // "Sort" vertices vertically
         int minY = Integer.MAX_VALUE;
@@ -329,24 +335,34 @@ public class PhysicsLoop extends Canvas implements Runnable {
         double leftInverseSlope = calculateInverseSlope(vertices[leftIndex],vertices[leftNextIndex]) * 4; // Once again, reasoning in subpixels
         double rightInverseSlope = calculateInverseSlope(vertices[rightIndex],vertices[rightNextIndex]) * 4;
 
+        // Interpolate entryX/exitX from the top vertex down to the actual starting scanline
+        double topVertexY = vertices[highestVertexIndex].getY();
+        if (topVertexY < minY) {
+            double dy = minY - topVertexY;
+            entryX += leftInverseSlope * dy;
+            exitX += rightInverseSlope * dy;
+        }
+
         // Start scanning down, line by line
         for (int y = minY; y <= maxY; y++) {
             // Check if left edge has expired
             while (y > vertices[leftNextIndex].getY() && y < maxY) {
                 leftIndex = leftNextIndex;
                 leftNextIndex = (leftIndex - 1 + count) % count;
-                // Re-calculate the entry and slope
-                entryX = vertices[leftIndex].getX() * 4;
                 leftInverseSlope = calculateInverseSlope(vertices[leftIndex],vertices[leftNextIndex]) * 4;
+                // Re-calculate the entry and slope
+                double vertexY = vertices[leftIndex].getY();
+                entryX = (vertices[leftIndex].getX() + (y - vertexY) * (leftInverseSlope / 4.0)) * 4;
             }
 
             // Check if right edge has expired
             while (y > vertices[rightNextIndex].getY() && y < maxY) {
                 rightIndex = rightNextIndex;
                 rightNextIndex = (rightIndex + 1) % count;
-                // Re-calculate the exit and slope
-                exitX = vertices[rightIndex].getX() * 4;
                 rightInverseSlope = calculateInverseSlope(vertices[rightIndex],vertices[rightNextIndex]) * 4;
+                // Re-calculate the exit and slope
+                double vertexY = vertices[rightIndex].getY();
+                exitX = (vertices[rightIndex].getX() + (y - vertexY) * (rightInverseSlope / 4.0)) * 4;
             }
 
             // Determine subpixel and pixel entry/exit properly
@@ -382,6 +398,15 @@ public class PhysicsLoop extends Canvas implements Runnable {
             // Update edges using slopes
             entryX += leftInverseSlope;
             exitX += rightInverseSlope;
+
+            // Clamp to valid X range of current edges (prevents blow-up on near-horizontal edges)
+            double leftMinX = Math.min(vertices[leftIndex].getX(), vertices[leftNextIndex].getX()) * 4;
+            double leftMaxX = Math.max(vertices[leftIndex].getX(), vertices[leftNextIndex].getX()) * 4;
+            double rightMinX = Math.min(vertices[rightIndex].getX(), vertices[rightNextIndex].getX()) * 4;
+            double rightMaxX = Math.max(vertices[rightIndex].getX(), vertices[rightNextIndex].getX()) * 4;
+
+            entryX = Math.max(leftMinX, Math.min(leftMaxX, entryX));
+            exitX = Math.max(rightMinX, Math.min(rightMaxX, exitX));
         }
     }
 

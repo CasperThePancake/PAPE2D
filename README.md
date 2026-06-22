@@ -63,18 +63,18 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
   - [x] Rectangle
   - [x] Square
   - [x] Rotated versions
-- [ ] Fixed-velocity motion
-- [ ] Forces
-  - [ ] Gravity
-  - [ ] Air resistance
-  - [ ] Springs
+- [x] Fixed-velocity motion
+- [x] Forces
+  - [x] Gravity
+  - [x] Air resistance
+  - [x] Springs
 - [ ] Constraints
   - [ ] Distance constraint
   - [ ] Collisions
 - [ ] General checks
   - [ ] Antialiasing
 - [ ] Bugs to fix later
-  - [ ] Semi-horizontal edges show rendering artifacts
+  - [x] Semi-horizontal edges show rendering artifacts
 
 ### Angry Birds
 - [ ] Build the *Angry Birds* demonstration

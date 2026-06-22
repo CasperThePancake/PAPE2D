@@ -261,6 +261,11 @@ public class World {
      */
     public void addUniversalForce(UniversalForce universalForce) {
         this.universalForces.add(universalForce);
+
+        // Give it all the bodies that are already present
+        for (Body b : bodies) {
+            universalForce.addBody(b);
+        }
     }
 
     /**
