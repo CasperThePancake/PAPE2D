@@ -27,6 +27,8 @@ public abstract class Body {
     private double inertiaMoment;
     private Vector2 originVector;
     private double AABBminX, AABBmaxX, AABBminY, AABBmaxY;
+    private Vector2 pseudoVelocity;
+    private double pseudoAngularVelocity = 0;
 
     // =================================================================================
     // Constructors
@@ -249,6 +251,60 @@ public abstract class Body {
      */
     public Vector2 getRelativePosition(Vector2 bodyPoint) {
         return bodyPoint.minus(this.getPosition());
+    }
+
+    /**
+     * Get this body's pseudo-velocity vector
+     *
+     * @return This body's pseudo-velocity vector
+     */
+    public Vector2 getPseudoVelocity() {
+        return pseudoVelocity;
+    }
+
+    /**
+     * Set this body's pseudo-velocity vector
+     *
+     * @param pseudoVelocity Given pseudo-velocity vector
+     */
+    public void setPseudoVelocity(Vector2 pseudoVelocity) {
+        this.pseudoVelocity = pseudoVelocity;
+    }
+
+    /**
+     * Add to this body's pseudo-velocity vector
+     *
+     * @param deltaPseudoVelocity Given pseudo-velocity delta
+     */
+    public void addPseudoVelocity(Vector2 deltaPseudoVelocity) {
+        setPseudoVelocity(getPseudoVelocity().plus(deltaPseudoVelocity));
+    }
+
+    /**
+     * Get this body's pseudo-angular velocity
+     *
+     * @return This body's pseudo-angular velocity
+     */
+    public double getPseudoAngularVelocity() {
+        return pseudoAngularVelocity;
+    }
+
+    /**
+     * Set this body's pseudo-angular velocity
+     *
+     * @param pseudoAngularVelocity Given pseudo-angular velocity
+     */
+    public void setPseudoAngularVelocity(double pseudoAngularVelocity) {
+        this.pseudoAngularVelocity = pseudoAngularVelocity;
+    }
+
+    /**
+     * Add to this body's pseudo-angular velocity
+     *
+     * @param deltaPseudoAngularVelocity Given pseudo-angular velocity delta
+     */
+    public void addPseudoAngularVelocity(double deltaPseudoAngularVelocity) {
+        setPseudoAngularVelocity(getPseudoAngularVelocity()+deltaPseudoAngularVelocity);
     }
 
     // =================================================================================

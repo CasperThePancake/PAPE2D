@@ -10,6 +10,10 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Arrays;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
 /**
  * Physics loop class linked to a World that runs, simulates, and renders its contents in a thread
@@ -22,6 +26,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
     private static final int HEIGHT = 600;
 
     private double fpsPrintTimer = 0;
+
+    private final boolean[] keys = new boolean[256];
+    private int mouseWheelDelta = 0;
 
     private final World world;
     private final double targetDt;
@@ -54,6 +61,39 @@ public class PhysicsLoop extends Canvas implements Runnable {
         this.image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         this.pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
+        // Attach a key listener directly to this Canvas component
+        this.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int keyCode = e.getKeyCode();
+                if (keyCode >= 0 && keyCode < keys.length) {
+                    keys[keyCode] = true;
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                int keyCode = e.getKeyCode();
+                if (keyCode >= 0 && keyCode < keys.length) {
+                    keys[keyCode] = false;
+                }
+            }
+        });
+
+        this.addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                // Safely accumulate scroll movements dynamically across threads
+                synchronized(PhysicsLoop.this) {
+                    mouseWheelDelta += e.getWheelRotation();
+                }
+            }
+        });
+
+        // Ensure the Canvas can immediately capture input focus
+        this.setFocusable(true);
+        this.requestFocusInWindow();
+
         // Boot up the window frame
         initWindow();
     }
@@ -66,6 +106,31 @@ public class PhysicsLoop extends Canvas implements Runnable {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    /**
+     * Check if keyboard key with given code is pressed
+     *
+     * @param keyCode Given key code
+     *
+     * @return Whether or not the key is pressed
+     */
+    public boolean isKeyDown(int keyCode) {
+        if (keyCode >= 0 && keyCode < keys.length) {
+            return keys[keyCode];
+        }
+        return false;
+    }
+
+    /**
+     * Returns and resets the current mouse wheel scroll delta
+     *
+     * @return Mouse wheel scroll delta
+     */
+    public synchronized int flushMouseWheelDelta() {
+        int delta = mouseWheelDelta;
+        mouseWheelDelta = 0;
+        return delta;
     }
 
     // =================================================================================

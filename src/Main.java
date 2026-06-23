@@ -5,10 +5,12 @@ import PAPE2D.bodies.Circle;
 import PAPE2D.bodies.Polygon;
 import PAPE2D.bodies.Rectangle;
 import PAPE2D.bodies.Square;
+import PAPE2D.constraint.DistanceConstraint;
 import PAPE2D.force.AirResistance;
 import PAPE2D.force.Gravity;
 import PAPE2D.force.Spring;
 import PAPE2D.helper.Vector2;
+import PAPE2D.ticklisteners.CameraMovement;
 
 import java.util.List;
 
@@ -21,7 +23,7 @@ public class Main {
     public static void main(String[] args) {
         // Initiate world and physics loop
         World world = new World();
-        PhysicsLoop loop = new PhysicsLoop(world, 60);
+        PhysicsLoop loop = new PhysicsLoop(world, 200);
 
 //        List<Vector2> vertices = List.of(
 //                new Vector2(0, 60),    // 1. Sharp top point
@@ -40,7 +42,8 @@ public class Main {
 
         world.addBody(myBody1);
         world.addBody(myBody2);
-        world.addLocalForce(new Spring(myBody1,myBody2,0.05,400));
+        world.addStaticConstraint(new DistanceConstraint(myBody1,myBody2,new Vector2(20,20),new Vector2(20,20),200));
+        world.addPreUpdateTickListener(new CameraMovement(300));
 
 //        // Adding a listener directly via a lambda expression
 //        world.addPreUpdateTickListener((tickedWorld, tickedPhysicsLoop, dt) -> {

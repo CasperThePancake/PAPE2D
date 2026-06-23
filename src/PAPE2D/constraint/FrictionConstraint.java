@@ -61,6 +61,11 @@ public class FrictionConstraint extends DynamicConstraint {
     }
 
     @Override
+    public double calculatePseudoDeltaJ() { // WIP
+        return 0;
+    }
+
+    @Override
     public void capJ() {
         double limit = frictionCoefficient * Math.abs(myContactConstraint.getJ());
         if (J > limit) {
@@ -68,6 +73,11 @@ public class FrictionConstraint extends DynamicConstraint {
         } else if (J < -limit) {
             J = -limit;
         }
+    }
+
+    @Override
+    public void capPseudoJ() { // WIP
+
     }
 
     @Override
@@ -84,6 +94,11 @@ public class FrictionConstraint extends DynamicConstraint {
         contactManifold.getBody2().addVelocity(tangent.times(realDeltaJ/mass2));
         contactManifold.getBody1().addAngularVelocity(-Math.abs(rel1CrossT)*realDeltaJ/inertia1);
         contactManifold.getBody2().addAngularVelocity(Math.abs(rel2CrossT)*realDeltaJ/inertia2);
+    }
+
+    @Override
+    public void updatePseudoVelocity(double realPseudoDeltaJ) { // WIP
+
     }
 
     @Override

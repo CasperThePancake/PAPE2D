@@ -36,6 +36,18 @@ public class DistanceConstraint extends StaticConstraint {
     }
 
     /**
+     * Create a new fixedDistance constraint which forces points on two bodies to be at their current distance forever
+     *
+     * @param body1 First body
+     * @param body2 Second body
+     * @param body1relative Relative vector from center of body 1 to its connection point, assumed unrotated
+     * @param body2relative Relative vector from center of body 2 to its connection point, assumed unrotated
+     */
+    public DistanceConstraint(Body body1, Body body2, Vector2 body1relative, Vector2 body2relative) {
+        this(body1,body2,body1relative,body2relative,body1.getPosition().plus(body1relative.rotate(body1.getAngle())).distance(body2.getPosition().plus(body2relative.rotate(body2.getAngle()))));
+    }
+
+    /**
      * Create a new distance constraint which forces the centers of two bodies to be at their current distance forever
      *
      * @param body1 First body
@@ -144,35 +156,86 @@ public class DistanceConstraint extends StaticConstraint {
     // =================================================================================
     @Override
     public double calculateDeltaJ() {
-        // Helpful constants
         Vector2 realBody1relative = getBody1relative().rotate(getBody1().getAngle());
         Vector2 realBody2relative = getBody2relative().rotate(getBody2().getAngle());
         Vector2 worldConnection1 = getBody1().getPosition().plus(realBody1relative);
         Vector2 worldConnection2 = getBody2().getPosition().plus(realBody2relative);
         Vector2 worldD = worldConnection2.minus(worldConnection1);
+        Vector2 dHat = worldD.normalized();
         double omega1 = getBody1().getAngularVelocity();
         double omega2 = getBody2().getAngularVelocity();
 
-        // Calculate the update
-        double numerator = worldD.dot(getBody2().getVelocity().minus(realBody2relative.cross(omega2)).minus(getBody1().getVelocity()).plus(realBody1relative.cross(omega1)));
-        double denominator = Math.pow(worldD.size(),2)/getBody2().getMass() + Math.pow(worldD.size(),2)/getBody1().getMass() + Math.pow(worldD.cross(realBody2relative),2)/getBody2().getInertiaMoment() + Math.pow(worldD.cross(realBody1relative),2)/getBody1().getInertiaMoment();
-        return -(numerator+getCurrentBias())/denominator;
+        // Ċ = d̂ · (v2 + ω2×r2 - v1 - ω1×r1)
+        double numerator = dHat.dot(
+                getBody2().getVelocity().plus(realBody2relative.cross(omega2))
+                        .minus(getBody1().getVelocity()).minus(realBody1relative.cross(omega1))
+        );
+
+        // J·M⁻¹·Jᵀ
+        double denominator =
+                1.0 / getBody1().getMass()
+                        + 1.0 / getBody2().getMass()
+                        + Math.pow(realBody1relative.cross(dHat), 2) / getBody1().getInertiaMoment()
+                        + Math.pow(realBody2relative.cross(dHat), 2) / getBody2().getInertiaMoment();
+
+        return -(numerator) / denominator;
+    }
+
+    @Override
+    public double calculatePseudoDeltaJ() {
+        Vector2 realBody1relative = getBody1relative().rotate(getBody1().getAngle());
+        Vector2 realBody2relative = getBody2relative().rotate(getBody2().getAngle());
+        Vector2 worldConnection1 = getBody1().getPosition().plus(realBody1relative);
+        Vector2 worldConnection2 = getBody2().getPosition().plus(realBody2relative);
+        Vector2 worldD = worldConnection2.minus(worldConnection1);
+        Vector2 dHat = worldD.normalized();
+        double omega1 = getBody1().getPseudoAngularVelocity();
+        double omega2 = getBody2().getPseudoAngularVelocity();
+
+        // Ċ = d̂ · (v2 + ω2×r2 - v1 - ω1×r1)
+        double numerator = dHat.dot(
+                getBody2().getPseudoVelocity().plus(realBody2relative.cross(omega2))
+                        .minus(getBody1().getPseudoVelocity()).minus(realBody1relative.cross(omega1))
+        );
+
+        // J·M⁻¹·Jᵀ
+        double denominator =
+                1.0 / getBody1().getMass()
+                        + 1.0 / getBody2().getMass()
+                        + Math.pow(realBody1relative.cross(dHat), 2) / getBody1().getInertiaMoment()
+                        + Math.pow(realBody2relative.cross(dHat), 2) / getBody2().getInertiaMoment();
+
+        return -(numerator + getCurrentBias()) / denominator;
     }
 
     @Override
     public void updateVelocity(double realDeltaJ) {
-        // Helpful constants
         Vector2 realBody1relative = getBody1relative().rotate(getBody1().getAngle());
         Vector2 realBody2relative = getBody2relative().rotate(getBody2().getAngle());
         Vector2 worldConnection1 = getBody1().getPosition().plus(realBody1relative);
         Vector2 worldConnection2 = getBody2().getPosition().plus(realBody2relative);
-        Vector2 worldD = worldConnection2.minus(worldConnection1);
+        Vector2 dHat = worldConnection2.minus(worldConnection1).normalized();
 
-        // Calculate the update
-        getBody1().addVelocity(worldD.times(-realDeltaJ / getBody1().getMass()));
-        getBody2().addVelocity(worldD.times(realDeltaJ / getBody2().getMass()));
-        getBody1().addAngularVelocity(-realBody1relative.cross(worldD) / getBody1().getInertiaMoment() * realDeltaJ);
-        getBody2().addAngularVelocity(realBody2relative.cross(worldD) / getBody2().getInertiaMoment() * realDeltaJ);
+        // v += J^T * ΔJ / m,  ω += r × J^T * ΔJ / I
+        getBody1().addVelocity(dHat.times(-realDeltaJ / getBody1().getMass()));
+        getBody2().addVelocity(dHat.times( realDeltaJ / getBody2().getMass()));
+        getBody1().addAngularVelocity(-realBody1relative.cross(dHat) * realDeltaJ / getBody1().getInertiaMoment());
+        getBody2().addAngularVelocity( realBody2relative.cross(dHat) * realDeltaJ / getBody2().getInertiaMoment());
+    }
+
+    @Override
+    public void updatePseudoVelocity(double realPseudoDeltaJ) {
+        Vector2 realBody1relative = getBody1relative().rotate(getBody1().getAngle());
+        Vector2 realBody2relative = getBody2relative().rotate(getBody2().getAngle());
+        Vector2 worldConnection1 = getBody1().getPosition().plus(realBody1relative);
+        Vector2 worldConnection2 = getBody2().getPosition().plus(realBody2relative);
+        Vector2 dHat = worldConnection2.minus(worldConnection1).normalized();
+
+        // v += J^T * ΔJ / m,  ω += r × J^T * ΔJ / I
+        getBody1().addPseudoVelocity(dHat.times(-realPseudoDeltaJ / getBody1().getMass()));
+        getBody2().addPseudoVelocity(dHat.times( realPseudoDeltaJ / getBody2().getMass()));
+        getBody1().addPseudoAngularVelocity(-realBody1relative.cross(dHat) * realPseudoDeltaJ / getBody1().getInertiaMoment());
+        getBody2().addPseudoAngularVelocity( realBody2relative.cross(dHat) * realPseudoDeltaJ / getBody2().getInertiaMoment());
     }
 
     @Override
@@ -180,6 +243,8 @@ public class DistanceConstraint extends StaticConstraint {
         Vector2 worldConnection1 = getBody1().getPosition().plus(getBody1relative().rotate(getBody1().getAngle()));
         Vector2 worldConnection2 = getBody2().getPosition().plus(getBody2relative().rotate(getBody2().getAngle()));
         double distance = worldConnection1.distance(worldConnection2);
-        return beta / dt * 1/2 * (distance*distance- getFixedDistance()*getFixedDistance());
+        return (1 / dt) * (distance - getFixedDistance());
     }
 }
+
+// MATH NOTE: this is an updated version with constraint: |d| - L, giving a different deltaJ and deltaV formula, so we should re-derive properly at some point

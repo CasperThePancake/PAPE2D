@@ -5,6 +5,7 @@ import PAPE2D.constraint.ContactConstraint;
 import PAPE2D.constraint.FrictionConstraint;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.PotentialCollidingPair;
+import PAPE2D.helper.Vector2;
 import PAPE2D.narrowphase.SAT;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class World {
      * Create a world with recommended settings
      */
     public World() {
-        this(new SweepAndPrune(), new SAT(), 0.5, 5);
+        this(new SweepAndPrune(), new SAT(), 1, 20);
     }
 
     /**
@@ -98,17 +99,36 @@ public class World {
             c.initConstraint(beta,dt);
         }
 
-        // Iterate over all constraints (thus J) multiple times (amount determined by 'detail' argument)
+        // Iterate over all constraints (thus J) multiple times (amount determined by 'detail' argument) (PGS)
         for (int i = 0; i < detail; i++) {
             for (Constraint c : constraints) {
                 c.updateConstraint();
             }
         }
 
+        // Iterate for positional constraints, yielding pseudo-velocity (amount determined by 'detail' argument) (NGS)
+        for (Body b : bodies) { // Reset pseudo-velocities
+            b.setPseudoVelocity(new Vector2());
+            b.setPseudoAngularVelocity(0);
+        }
+
+        for (int i = 0; i < detail; i++) { // Iteration for pseudo-velocities
+            for (Constraint c : constraints) {
+                c.updatePseudoConstraint();
+            }
+            // temporarily move positions so next iteration sees updated error
+            for (Body b : bodies) {
+                b.setPosition(b.getPosition().plus(b.getPseudoVelocity().times(dt/detail)));
+                b.setAngle(b.getAngle() + dt/detail * b.getPseudoAngularVelocity());
+                b.setPseudoVelocity(new Vector2());
+                b.setPseudoAngularVelocity(0);
+            }
+        }
+
         // Perform simple step in time
         for (Body b : bodies) {
             b.setPosition(b.getPosition().plus(b.getVelocity().times(dt)));
-            b.setAngle(b.getAngle()+dt*b.getAngularVelocity());
+            b.setAngle(b.getAngle()+dt*(b.getAngularVelocity()));
         }
 
         // Update each body internally for next step

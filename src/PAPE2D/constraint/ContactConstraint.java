@@ -121,10 +121,20 @@ public class ContactConstraint extends DynamicConstraint {
     }
 
     @Override
+    public double calculatePseudoDeltaJ() { // WIP
+        return 0;
+    }
+
+    @Override
     public void capJ() {
         if (J < 0) {
             J = 0;
         }
+    }
+
+    @Override
+    public void capPseudoJ() { // WIP
+
     }
 
     @Override
@@ -141,6 +151,11 @@ public class ContactConstraint extends DynamicConstraint {
         contactManifold.getBody2().addVelocity(normal.times(realDeltaJ/mass2));
         contactManifold.getBody1().addAngularVelocity(-Math.abs(rel1CrossN)*realDeltaJ/inertia1);
         contactManifold.getBody2().addAngularVelocity(Math.abs(rel2CrossN)*realDeltaJ/inertia2);
+    }
+
+    @Override
+    public void updatePseudoVelocity(double realPseudoDeltaJ) { // WIP
+
     }
 
     @Override

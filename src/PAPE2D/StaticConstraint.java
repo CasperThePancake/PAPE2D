@@ -8,4 +8,9 @@ public abstract class StaticConstraint extends Constraint {
     public void capJ() {
         // Static constraints generally do not perform J capping, this is only used for contact/friction constraints, which are dynamic constraints.
     }
+
+    @Override
+    public void capPseudoJ() {
+        // Same here!
+    }
 }
