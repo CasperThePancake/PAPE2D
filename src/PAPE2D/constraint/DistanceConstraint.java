@@ -246,5 +246,3 @@ public class DistanceConstraint extends StaticConstraint {
         return (1 / dt) * (distance - getFixedDistance());
     }
 }
-
-// MATH NOTE: this is an updated version with constraint: |d| - L, giving a different deltaJ and deltaV formula, so we should re-derive properly at some point
