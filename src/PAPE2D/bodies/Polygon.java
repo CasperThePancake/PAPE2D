@@ -288,10 +288,10 @@ public class Polygon extends Body {
 
     @Override @Optimize
     public void updateAABB() {
-        double minX = 0;
-        double minY = 0;
-        double maxX = 0;
-        double maxY = 0;
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
 
         for (Vector2 v : getInternalVertices()) {
             Vector2 vReal = getPosition().plus(v.rotate(getAngle()));
@@ -385,6 +385,7 @@ public class Polygon extends Body {
             Vector2 outwardVector = edgeVector.rotate(-Math.PI/2).normalized();
             if (outwardVector.dot(outwardNormal) > bestAlign) {
                 bestEdge = new Edge(worldVertices.get(i), worldVertices.get((i+1)%N), outwardVector);
+                bestAlign = outwardVector.dot(outwardNormal);
             }
         }
 

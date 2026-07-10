@@ -74,6 +74,7 @@ public class World {
 
         // Perform narrow phase collision detection
         List<ContactManifold> contactManifolds = narrowPhase.getContactManifolds(potentialPairs);
+        IO.println(contactManifolds.size());
 
         // Initialize list of all constraints
         List<Constraint> constraints = new ArrayList<>(List.copyOf(staticConstraints)); // Begin with the static constraints
@@ -134,6 +135,7 @@ public class World {
         // Update each body internally for next step
         for (Body b : bodies) {
             b.updateInternally();
+            b.updateAABB();
         }
 
         // Update the broad phase system for next step

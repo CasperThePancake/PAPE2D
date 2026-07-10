@@ -110,7 +110,7 @@ public class SweepAndPrune extends BroadPhaseCollisionSystem {
                 xEdges.set(j+1,xEdges.get(j));
                 j--;
             }
-            xEdges.set(j,tempEdge);
+            xEdges.set(j+1,tempEdge);
         }
     }
 

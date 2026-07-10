@@ -234,7 +234,7 @@ public class Vector2 {
      * @return (x,y) part of cross product (x,y,0) = this x (0,0,z)
      */
     public Vector2 cross(double z) {
-        return new Vector2(-z * this.getY(), z*this.getX());
+        return new Vector2(z * this.getY(), -z*this.getX());
     }
 
     /**
@@ -246,5 +246,10 @@ public class Vector2 {
      */
     public double cross(Vector2 other) {
         return this.getX() * other.getY() - this.getY() * other.getX();
+    }
+
+    @Override
+    public String toString() {
+        return "("+getX()+","+getY()+")";
     }
 }

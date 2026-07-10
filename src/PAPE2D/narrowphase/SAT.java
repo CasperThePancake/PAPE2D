@@ -56,7 +56,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
         Body incidentBody;
 
         // If the index is less than the number of axes Body 1 provided, Body 1 is the reference
-        if (bestAxisIndex < potentialCollidingPair.getBody1().getSATAxes(referenceBody = potentialCollidingPair.getBody2()).size()) {
+        if (bestAxisIndex < potentialCollidingPair.getBody1().getSATAxes(potentialCollidingPair.getBody2()).size()) {
             referenceBody = potentialCollidingPair.getBody1();
             incidentBody = potentialCollidingPair.getBody2();
         } else {
@@ -80,48 +80,56 @@ public class SAT extends NarrowPhaseCollisionSystem {
             // Type casting my beloved?
             contactPoints.add(incidentBody.getPosition().minus(normal.times(((Circle) incidentBody).getRadius())));
             penetrationDepths.add(minOverlap); // Penetration depth is obvious here
-        } else if (referenceBody instanceof Polygon && incidentBody instanceof Polygon) { // The collision is between two polygons: perform edge clipping
-            // Find the reference edge: edge of the reference body whose outward normal aligns most with stored normal
-            Edge referenceEdge = ((Polygon) referenceBody).findBestEdge(normal);
+        } else if (referenceBody instanceof Polygon && incidentBody instanceof Polygon) {
+            IO.println("hello!");
 
-            // Find the incident edge: edge of the incident body whose outward normal aligns most with negated stored normal (of reference)
+            // 1. Find the edges facing each other
+            Edge referenceEdge = ((Polygon) referenceBody).findBestEdge(normal);
+            // Incident edge faces the opposite direction of the reference outward normal
             Edge incidentEdge = ((Polygon) incidentBody).findBestEdge(normal.times(-1));
 
-            // CLIPPING ALGORITHM
-            // Define the two reference vertices
             Vector2 reference1 = referenceEdge.getV1();
             Vector2 reference2 = referenceEdge.getV2();
 
-            // Define the two candidate points
             Vector2 candidate1 = incidentEdge.getV1();
             Vector2 candidate2 = incidentEdge.getV2();
 
-            // Clip them into the acceptable range if necessary
-            // Pass 1: Wall at Reference 2
+            // Pass 1: Clip against Reference 2 side plane
             boolean c1Out = reference1.minus(reference2).dot(candidate1.minus(reference2)) < 0;
             boolean c2Out = reference1.minus(reference2).dot(candidate2.minus(reference2)) < 0;
 
-            if (c1Out && c2Out) return null; // Both points outside Wall 2 -> No collision possible
+            if (c1Out && c2Out) return new ArrayList<>();
             if (c1Out) candidate1 = intersectSnap(candidate2, candidate1, reference2, reference1.minus(reference2));
             if (c2Out) candidate2 = intersectSnap(candidate1, candidate2, reference2, reference1.minus(reference2));
 
-            // Pass 2: Wall at Reference 1
+            // Pass 2: Clip against Reference 1 side plane
             boolean c1Out2 = reference2.minus(reference1).dot(candidate1.minus(reference1)) < 0;
             boolean c2Out2 = reference2.minus(reference1).dot(candidate2.minus(reference1)) < 0;
 
-            if (c1Out2 && c2Out2) return null; // Both points outside Wall 1 -> No collision possible
+            if (c1Out2 && c2Out2) return new ArrayList<>();
             if (c1Out2) candidate1 = intersectSnap(candidate2, candidate1, reference1, reference2.minus(reference1));
             if (c2Out2) candidate2 = intersectSnap(candidate1, candidate2, reference1, reference2.minus(reference1));
 
-            // Keep only those inside of the reference object (behind wall defined by outward normal on reference edge)
-            if (candidate1.minus(reference1).dot(referenceEdge.getOutwardNormal()) < 0) {
+            // Pass 3: Only keep points that are behind the reference edge plane (penetrating)
+            // Project the point relative to the reference edge onto the outward normal
+            double separation1 = candidate1.minus(reference1).dot(referenceEdge.getOutwardNormal());
+            double separation2 = candidate2.minus(reference1).dot(referenceEdge.getOutwardNormal());
+
+            // Negative separation means the point is underneath/inside the edge surface!
+            if (separation1 <= 0.0) {
                 contactPoints.add(candidate1);
-                penetrationDepths.add(Edge.distance(referenceEdge,candidate1));
+                penetrationDepths.add(-separation1); // Turn negative separation into positive depth
             }
-            if (candidate2.minus(reference1).dot(referenceEdge.getOutwardNormal()) < 0) {
+            if (separation2 <= 0.0) {
                 contactPoints.add(candidate2);
-                penetrationDepths.add(Edge.distance(referenceEdge,candidate2));
+                penetrationDepths.add(-separation2);
             }
+
+            System.out.println("--- Clipping Debug ---");
+            System.out.println("Ref Edge Normal: " + referenceEdge.getOutwardNormal());
+            System.out.println("SAT Separation Normal: " + normal);
+            System.out.println("Candidate 1 Raw Position: " + candidate1);
+            System.out.println("Separation 1 Val: " + candidate1.minus(reference1).dot(referenceEdge.getOutwardNormal()));
         }
 
         // 7. Put it all into contact manifold and return
@@ -131,6 +139,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
             contactManifolds.add(new ContactManifold(contactPoints.get(i), penetrationDepths.get(i), referenceBody, incidentBody, normal, tangent));
         } // Normal points reference > incident, so as contacts enforce n * (v2-v1) this should be from body 1 to body 2, meaning reference=body1, incident=body2
 
+        IO.println(contactManifolds.size());
         return contactManifolds;
     }
 
