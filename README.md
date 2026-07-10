@@ -68,18 +68,18 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
   - [x] Gravity
   - [x] Air resistance
   - [x] Springs
-- [ ] Constraints
+- [x] Constraints
   - [x] Distance constraint
-  - [ ] Collisions
+  - [x] Collisions
 - [ ] General checks
   - [ ] Antialiasing
-- [ ] Bugs to fix later
+- [x] Bugs to fix later
   - [x] Semi-horizontal edges show rendering artifacts
 
 ### Additional features
 - [ ] Optional visual indicator for Spring force
 - [ ] Body visual sprites
-- [ ] Option for a Body to not have collision
+- [x] Option for a Body to not have collision
 
 ### Angry Birds
 - [ ] Build the *Angry Birds* demonstration

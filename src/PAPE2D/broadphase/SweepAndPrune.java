@@ -123,6 +123,9 @@ public class SweepAndPrune extends BroadPhaseCollisionSystem {
         scanBuffer.clear();
 
         for (Edge e : xEdges) {
+            if (!e.getOwner().hasCollision()) {
+                continue; // Make it impossible for non-collision bodies to ever appear in a collision!
+            }
             if (e.getBound() == Bound.MIN) {
                 for (Body o : scanBuffer) { // Everything else in scanBuffer is an overlap candidate
                     if (o.AABBOverlaps(e.getOwner())) { // Check full AABB overlap

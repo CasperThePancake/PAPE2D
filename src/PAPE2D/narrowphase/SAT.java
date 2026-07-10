@@ -81,8 +81,6 @@ public class SAT extends NarrowPhaseCollisionSystem {
             contactPoints.add(incidentBody.getPosition().minus(normal.times(((Circle) incidentBody).getRadius())));
             penetrationDepths.add(minOverlap); // Penetration depth is obvious here
         } else if (referenceBody instanceof Polygon && incidentBody instanceof Polygon) {
-            IO.println("hello!");
-
             // 1. Find the edges facing each other
             Edge referenceEdge = ((Polygon) referenceBody).findBestEdge(normal);
             // Incident edge faces the opposite direction of the reference outward normal
@@ -112,24 +110,25 @@ public class SAT extends NarrowPhaseCollisionSystem {
 
             // Pass 3: Only keep points that are behind the reference edge plane (penetrating)
             // Project the point relative to the reference edge onto the outward normal
-            double separation1 = candidate1.minus(reference1).dot(referenceEdge.getOutwardNormal());
-            double separation2 = candidate2.minus(reference1).dot(referenceEdge.getOutwardNormal());
+            // Use 'normal' because it is mathematically guaranteed to point towards the incident body
+            double separation1 = candidate1.minus(reference1).dot(normal);
+            double separation2 = candidate2.minus(reference1).dot(normal);
 
-            // Negative separation means the point is underneath/inside the edge surface!
-            if (separation1 <= 0.0) {
+            // Negative separation means the point is underneath/inside the edge surface, so we count it!
+            double contactPaddingSkin = 0.1; // Allow some numerical leeway
+
+            if (separation1 <= contactPaddingSkin) {
                 contactPoints.add(candidate1);
                 penetrationDepths.add(-separation1); // Turn negative separation into positive depth
             }
-            if (separation2 <= 0.0) {
+            if (separation2 <= contactPaddingSkin) {
                 contactPoints.add(candidate2);
                 penetrationDepths.add(-separation2);
             }
 
-            System.out.println("--- Clipping Debug ---");
-            System.out.println("Ref Edge Normal: " + referenceEdge.getOutwardNormal());
-            System.out.println("SAT Separation Normal: " + normal);
-            System.out.println("Candidate 1 Raw Position: " + candidate1);
-            System.out.println("Separation 1 Val: " + candidate1.minus(reference1).dot(referenceEdge.getOutwardNormal()));
+            if (incidentBody.doesDebug() || referenceBody.doesDebug()) {
+                IO.println("Amount of contact points: "+contactPoints.size());
+            }
         }
 
         // 7. Put it all into contact manifold and return
@@ -139,7 +138,6 @@ public class SAT extends NarrowPhaseCollisionSystem {
             contactManifolds.add(new ContactManifold(contactPoints.get(i), penetrationDepths.get(i), referenceBody, incidentBody, normal, tangent));
         } // Normal points reference > incident, so as contacts enforce n * (v2-v1) this should be from body 1 to body 2, meaning reference=body1, incident=body2
 
-        IO.println(contactManifolds.size());
         return contactManifolds;
     }
 

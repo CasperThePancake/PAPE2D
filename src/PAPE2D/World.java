@@ -36,7 +36,7 @@ public class World {
      * Create a world with recommended settings
      */
     public World() {
-        this(new SweepAndPrune(), new SAT(), 1, 20);
+        this(new SweepAndPrune(), new SAT(), 0.3, 5);
     }
 
     /**
@@ -66,7 +66,7 @@ public class World {
     public void step(double dt, PhysicsLoop linkedLoop) {
         // Pre-update ticking
         for (TickListener tickListener : preUpdateListeners) {
-            tickListener.onTick(this,linkedLoop,dt);
+            tickListener.onTick(this, linkedLoop, dt);
         }
 
         // Perform broad phase collision detection
@@ -74,19 +74,18 @@ public class World {
 
         // Perform narrow phase collision detection
         List<ContactManifold> contactManifolds = narrowPhase.getContactManifolds(potentialPairs);
-        IO.println(contactManifolds.size());
 
         // Initialize list of all constraints
-        List<Constraint> constraints = new ArrayList<>(List.copyOf(staticConstraints)); // Begin with the static constraints
-        List<ContactConstraint> contactConstraints = ContactConstraint.createConstraints(contactManifolds); // Then the contact constraints, based on collision results
+        List<Constraint> constraints = new ArrayList<>(List.copyOf(staticConstraints));
+        List<ContactConstraint> contactConstraints = ContactConstraint.createConstraints(contactManifolds);
         for (ContactConstraint c : contactConstraints) {
             constraints.add(c);
-            FrictionConstraint associatedFrictionConstraint = c.createFrictionConstraint(); // Friction constraints created here, to be associated properly with their contacts
+            FrictionConstraint associatedFrictionConstraint = c.createFrictionConstraint();
             c.setMyFrictionConstraint(associatedFrictionConstraint);
             constraints.add(associatedFrictionConstraint);
         }
 
-        // Calculate unconstrained velocity (= current velocity + unconstrained acceleration * dt)
+        // Calculate unconstrained velocity
         for (UniversalForce universalForce : universalForces) {
             universalForce.applyAcceleration(dt);
         }
@@ -95,41 +94,51 @@ public class World {
             localForce.applyAcceleration(dt);
         }
 
-        // Initialize every constraint's solving tech (mainly initializes Baumgarte term)
+        // Initialize every constraint's solving tech
         for (Constraint c : constraints) {
-            c.initConstraint(beta,dt);
+            c.initConstraint(beta, dt);
         }
 
-        // Iterate over all constraints (thus J) multiple times (amount determined by 'detail' argument) (PGS)
+        // PGS Velocity Iterations
         for (int i = 0; i < detail; i++) {
             for (Constraint c : constraints) {
                 c.updateConstraint();
             }
         }
 
-        // Iterate for positional constraints, yielding pseudo-velocity (amount determined by 'detail' argument) (NGS)
-        for (Body b : bodies) { // Reset pseudo-velocities
+        // Reset pseudo-velocities before NGS loop
+        for (Body b : bodies) {
             b.setPseudoVelocity(new Vector2());
             b.setPseudoAngularVelocity(0);
         }
 
-        for (int i = 0; i < detail; i++) { // Iteration for pseudo-velocities
+        // Accumulate NGS pseudo-velocity steps over iterations
+        for (int i = 0; i < detail; i++) {
             for (Constraint c : constraints) {
                 c.updatePseudoConstraint();
             }
-            // temporarily move positions so next iteration sees updated error
-            for (Body b : bodies) {
-                b.setPosition(b.getPosition().plus(b.getPseudoVelocity().times(dt/detail)));
-                b.setAngle(b.getAngle() + dt/detail * b.getPseudoAngularVelocity());
-                b.setPseudoVelocity(new Vector2());
-                b.setPseudoAngularVelocity(0);
-            }
         }
 
-        // Perform simple step in time
+        // Apply the accumulated pseudo-velocities to fix positions cleanly
         for (Body b : bodies) {
+            if (b.isFrozen()) {
+                b.setPseudoVelocity(new Vector2());
+                b.setPseudoAngularVelocity(0);
+                continue;
+            }
+            b.setPosition(b.getPosition().plus(b.getPseudoVelocity()));
+            b.setAngle(b.getAngle() + b.getPseudoAngularVelocity());
+        }
+
+        // Perform standard time step integration
+        for (Body b : bodies) {
+            if (b.isFrozen()) {
+                b.setVelocity(new Vector2());
+                b.setAngularVelocity(0);
+                continue;
+            }
             b.setPosition(b.getPosition().plus(b.getVelocity().times(dt)));
-            b.setAngle(b.getAngle()+dt*(b.getAngularVelocity()));
+            b.setAngle(b.getAngle() + dt * b.getAngularVelocity());
         }
 
         // Update each body internally for next step
@@ -143,7 +152,7 @@ public class World {
 
         // Post-update ticking
         for (TickListener tickListener : postUpdateListeners) {
-            tickListener.onTick(this,linkedLoop,dt);
+            tickListener.onTick(this, linkedLoop, dt);
         }
     }
 

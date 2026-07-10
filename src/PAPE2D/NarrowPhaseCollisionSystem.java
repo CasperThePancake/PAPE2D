@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @note Unlike the broad-phase collision system, this one does not keep track of bodies, instead working on a case-to-case basis, checking each potentialPair
  */
-public abstract class NarrowPhaseCollisionSystem extends CollisionSystem {
+public abstract class NarrowPhaseCollisionSystem {
     // =================================================================================
     // Attributes
     // =================================================================================

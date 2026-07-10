@@ -29,6 +29,9 @@ public abstract class Body {
     private double AABBminX, AABBmaxX, AABBminY, AABBmaxY;
     private Vector2 pseudoVelocity;
     private double pseudoAngularVelocity = 0;
+    private boolean isFrozen = false;
+    private boolean hasCollision = true;
+    private boolean doDebug = false;
 
     // =================================================================================
     // Constructors
@@ -372,4 +375,62 @@ public abstract class Body {
     // Rendering
     // =================================================================================
     public abstract void render(PhysicsLoop physicsLoop);
+
+    // =================================================================================
+    // Flags
+    // =================================================================================
+
+    /**
+     * Check whether this body is frozen or not, meaning its velocity is reset to zero at all times
+     *
+     * @return True if the body is frozen; false otherwise
+     */
+    public boolean isFrozen() {
+        return isFrozen;
+    }
+
+    /**
+     * Set whether this body is frozen or not, meaning its velocity is reset to zero at all times if true
+     *
+     * @param frozen Given frozen boolean
+     */
+    public void setFrozen(boolean frozen) {
+        isFrozen = frozen;
+    }
+
+    /**
+     * Check whether this body has collisions turned on
+     *
+     * @return True if the body has collisions; false otherwise
+     */
+    public boolean hasCollision() {
+        return hasCollision;
+    }
+
+    /**
+     * Set whether this body has collisions turned on or not
+     *
+     * @param hasCollision Boolean indicating whether the body should have collisions or not
+     */
+    public void setCollision(boolean hasCollision) {
+        this.hasCollision = hasCollision;
+    }
+
+    /**
+     * Check whether this body displays debug information (intended for developers only)
+     *
+     * @return True if it displays debug information; false otherwise
+     */
+    public boolean doesDebug() {
+        return doDebug;
+    }
+
+    /**
+     * Set whether to display debug information for this body (intended for developers only)
+     *
+     * @param doDebug True if you want this body to display debug information
+     */
+    public void setDebug(boolean doDebug) {
+        this.doDebug = doDebug;
+    }
 }

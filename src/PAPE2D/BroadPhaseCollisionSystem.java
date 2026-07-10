@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @note The broad phase system keeps track of its objects (exact implementation differs, hence no attributes), hence abstract methods
  */
-public abstract class BroadPhaseCollisionSystem extends CollisionSystem {
+public abstract class BroadPhaseCollisionSystem {
     // =================================================================================
     // Attributes
     // =================================================================================

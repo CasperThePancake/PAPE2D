@@ -10,6 +10,7 @@ public class ContactConstraint extends DynamicConstraint {
     private ContactManifold contactManifold;
     private FrictionConstraint myFrictionConstraint;
     private double bounceVelocity = 0.0;
+    private double beta = 0;
 
     public ContactConstraint(ContactManifold contactManifold) {
         setContactManifold(contactManifold);
@@ -65,9 +66,7 @@ public class ContactConstraint extends DynamicConstraint {
         Vector2 relativeVelocityVector = body2speed.plus(body2rotSpeed).minus(body1speed).minus(body1rotSpeed);
         double relativeVelocity = relativeVelocityVector.dot(normal);
 
-        // REMOVED early guard condition to allow proper PGS convergence across iterations! (WIP RESEARCH)
-
-        double numerator = relativeVelocity - bounceVelocity - getCurrentBias();
+        double numerator = relativeVelocity - bounceVelocity;
         double denominator = 1.0/mass1 + 1.0/mass2 + (rel1CrossN * rel1CrossN) / inertia1 + (rel2CrossN * rel2CrossN) / inertia2;
 
         if (denominator == 0.0) return 0.0;
@@ -86,7 +85,6 @@ public class ContactConstraint extends DynamicConstraint {
         double mass1 = contactManifold.getBody1().getMass();
         double mass2 = contactManifold.getBody2().getMass();
 
-        // FIXED: Enforce clear, explicit cross matching to normal directionality rules
         double rel1CrossN = contactManifold.getContactPointRelativeBody1().cross(normal);
         double rel2CrossN = contactManifold.getContactPointRelativeBody2().cross(normal);
 
@@ -102,12 +100,24 @@ public class ContactConstraint extends DynamicConstraint {
 
     @Override
     public double calculateBias(double beta, double dt) {
-        return beta / dt * Math.max(0, contactManifold.getPenetrationDepth());
+        double depth = contactManifold.getPenetrationDepth();
+
+        // Allowed penetration allowance (linear slop)
+        double allowedPenetration = 0.05;
+        double error = Math.max(0.0, depth - allowedPenetration);
+
+        // Calculate the raw Baumgarte push
+        double rawBias = (beta / dt) * error;
+
+        // Cap the maximum push speed to prevent explosions
+        double maxResolutionVelocity = 30.0;
+        return Math.min(rawBias, maxResolutionVelocity);
     }
 
     @Override
     public void initConstraint(double beta, double dt) {
         super.initConstraint(beta, dt);
+        this.beta = beta;
 
         Vector2 normal = contactManifold.getNormalVector();
         Vector2 v1 = contactManifold.getBody1().getVelocity().plus(
@@ -126,13 +136,61 @@ public class ContactConstraint extends DynamicConstraint {
         }
     }
 
-    @Override public double calculatePseudoDeltaJ() { // WIP (and below)
-        return 0;
+    @Override
+    public double calculatePseudoDeltaJ() {
+        Vector2 normal = contactManifold.getNormalVector();
+
+        // Pseudo velocities do not include linear/angular structural body velocities
+        Vector2 body1PseudoSpeed = contactManifold.getBody1().getPseudoVelocity();
+        Vector2 body1PseudoRotSpeed = contactManifold.getContactPointRelativeBody1().cross(contactManifold.getBody1().getPseudoAngularVelocity()).times(-1);
+
+        Vector2 body2PseudoSpeed = contactManifold.getBody2().getPseudoVelocity();
+        Vector2 body2PseudoRotSpeed = contactManifold.getContactPointRelativeBody2().cross(contactManifold.getBody2().getPseudoAngularVelocity()).times(-1);
+
+        double mass1 = contactManifold.getBody1().getMass();
+        double mass2 = contactManifold.getBody2().getMass();
+
+        double rel1CrossN = contactManifold.getContactPointRelativeBody1().cross(normal);
+        double rel2CrossN = contactManifold.getContactPointRelativeBody2().cross(normal);
+
+        double inertia1 = contactManifold.getBody1().getInertiaMoment();
+        double inertia2 = contactManifold.getBody2().getInertiaMoment();
+
+        // Calculate penetration error velocity profile
+        Vector2 relativePseudoVelocityVector = body2PseudoSpeed.plus(body2PseudoRotSpeed).minus(body1PseudoSpeed).minus(body1PseudoRotSpeed);
+        double relativePseudoVelocity = relativePseudoVelocityVector.dot(normal);
+
+        double numerator = relativePseudoVelocity - calculateBias(beta,1.0);
+        double denominator = 1.0/mass1 + 1.0/mass2 + (rel1CrossN * rel1CrossN) / inertia1 + (rel2CrossN * rel2CrossN) / inertia2;
+
+        if (denominator == 0.0) return 0.0;
+
+        return -numerator / denominator;
     }
 
-    @Override public void capPseudoJ() {}
+    @Override
+    public void capPseudoJ() {
+        if (pseudoJ < 0) {
+            pseudoJ = 0;
+        }
+    }
 
-    @Override public void updatePseudoVelocity(double realPseudoDeltaJ) {
+    @Override
+    public void updatePseudoVelocity(double realPseudoDeltaJ) {
+        Vector2 normal = contactManifold.getNormalVector();
+        double mass1 = contactManifold.getBody1().getMass();
+        double mass2 = contactManifold.getBody2().getMass();
 
+        double rel1CrossN = contactManifold.getContactPointRelativeBody1().cross(normal);
+        double rel2CrossN = contactManifold.getContactPointRelativeBody2().cross(normal);
+
+        double inertia1 = contactManifold.getBody1().getInertiaMoment();
+        double inertia2 = contactManifold.getBody2().getInertiaMoment();
+
+        contactManifold.getBody1().addPseudoVelocity(normal.times(-realPseudoDeltaJ / mass1));
+        contactManifold.getBody2().addPseudoVelocity(normal.times(realPseudoDeltaJ / mass2));
+
+        contactManifold.getBody1().addPseudoAngularVelocity(-rel1CrossN * realPseudoDeltaJ / inertia1);
+        contactManifold.getBody2().addPseudoAngularVelocity(rel2CrossN * realPseudoDeltaJ / inertia2);
     }
 }
