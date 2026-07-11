@@ -65,7 +65,16 @@ public class SAT extends NarrowPhaseCollisionSystem {
         }
 
         // Make sure the normal vector points from reference to incident (for later usage)
-        if (normal.dot(incidentBody.getPosition().minus(referenceBody.getPosition())) < 0) {
+        Double[] refProjection = referenceBody.getProjectionEdges(normal);
+        Double[] incProjection = incidentBody.getProjectionEdges(normal);
+
+        // Calculate the midpoints of these projections
+        double refCenterAlongAxis = (refProjection[0] + refProjection[1]) / 2.0;
+        double incCenterAlongAxis = (incProjection[0] + incProjection[1]) / 2.0;
+
+        // If the incident body's center is behind the reference body's center on this axis,
+        // it means our normal is pointing backwards. Flip it!
+        if (incCenterAlongAxis < refCenterAlongAxis) {
             normal.multiply(-1);
         }
 

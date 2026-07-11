@@ -25,24 +25,21 @@ public class Main {
         World world = new World();
         PhysicsLoop loop = new PhysicsLoop(world, 200);
 
-        Body myBody1 = new Rectangle(new Vector2(200,150),10,100, new Vector2(0,0),0,0, 3);
-        Body myBody2 = new Rectangle(new Vector2(300,150),10,100, new Vector2(0,0),0,0, 3);
-        Body myBody3 = new Rectangle(new Vector2(175,160),150,10, new Vector2(0,0),0,0, 3);
-        Body myBody4 = new Circle(10,new Vector2(50,100), new Vector2(150,0),2);
+        Body myBody1 = new Circle(25,new Vector2(0,25), new Vector2(350,0),2);
 
         // Floor
         Body myFloor1 = new Rectangle(new Vector2(-500,0),1000,50,1);
+        Body myFloor2 = new Rectangle(new Vector2(-500,500),1000,50,1);
         Body myWall1 = new Rectangle(new Vector2(500,500),50,500,1);
         Body myWall2 = new Rectangle(new Vector2(-550,500),50,500,1);
         myFloor1.setFrozen(true);
+        myFloor2.setFrozen(true);
         myWall1.setFrozen(true);
         myWall2.setFrozen(true);
 
         world.addBody(myBody1);
-        world.addBody(myBody2);
-        world.addBody(myBody3);
-        world.addBody(myBody4);
         world.addBody(myFloor1);
+        world.addBody(myFloor2);
         world.addBody(myWall1);
         world.addBody(myWall2);
         world.addUniversalForce(new Gravity(50));

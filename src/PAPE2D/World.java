@@ -28,6 +28,7 @@ public class World {
     private List<TickListener> postUpdateListeners = new ArrayList<>();
     private double beta;
     private double detail;
+    private double restitution;
 
     // =================================================================================
     // Constructors
@@ -36,7 +37,7 @@ public class World {
      * Create a world with recommended settings
      */
     public World() {
-        this(new SweepAndPrune(), new SAT(), 0.3, 5);
+        this(new SweepAndPrune(), new SAT(), 0.3, 5, 0.9);
     }
 
     /**
@@ -46,12 +47,14 @@ public class World {
      * @param narrowPhase Given narrow phase collision system
      * @param beta Given beta value for Baumgarte stabilization (0 for no stabilization)
      * @param detail Given amount of all-constraint iterations for dynamics solver per step
+     * @param restitution Given restitution for collisions (aka bounciness from 0=full energy loss to 1=full bounce)
      */
-    public World(BroadPhaseCollisionSystem broadPhase, NarrowPhaseCollisionSystem narrowPhase, double beta, double detail) {
+    public World(BroadPhaseCollisionSystem broadPhase, NarrowPhaseCollisionSystem narrowPhase, double beta, double detail, double restitution) {
         this.setBroadPhase(broadPhase);
         this.setNarrowPhase(narrowPhase);
         this.beta = beta;
         this.detail = detail;
+        this.restitution = restitution;
     }
 
     // =================================================================================
@@ -77,7 +80,7 @@ public class World {
 
         // Initialize list of all constraints
         List<Constraint> constraints = new ArrayList<>(List.copyOf(staticConstraints));
-        List<ContactConstraint> contactConstraints = ContactConstraint.createConstraints(contactManifolds);
+        List<ContactConstraint> contactConstraints = ContactConstraint.createConstraints(contactManifolds,restitution);
         for (ContactConstraint c : contactConstraints) {
             constraints.add(c);
             FrictionConstraint associatedFrictionConstraint = c.createFrictionConstraint();
@@ -145,6 +148,9 @@ public class World {
         for (Body b : bodies) {
             b.updateInternally();
             b.updateAABB();
+            if (b.doesDebug()) {
+                IO.println("pos: "+b.getPosition());
+            }
         }
 
         // Update the broad phase system for next step

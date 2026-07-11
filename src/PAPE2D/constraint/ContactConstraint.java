@@ -1,6 +1,7 @@
 package PAPE2D.constraint;
 
 import PAPE2D.DynamicConstraint;
+import PAPE2D.bodies.Circle;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.Vector2;
 import java.util.ArrayList;
@@ -11,9 +12,11 @@ public class ContactConstraint extends DynamicConstraint {
     private FrictionConstraint myFrictionConstraint;
     private double bounceVelocity = 0.0;
     private double beta = 0;
+    private double restitution;
 
-    public ContactConstraint(ContactManifold contactManifold) {
+    public ContactConstraint(ContactManifold contactManifold, double restitution) {
         setContactManifold(contactManifold);
+        this.restitution = restitution;
     }
 
     public ContactManifold getContactManifold() {
@@ -32,10 +35,10 @@ public class ContactConstraint extends DynamicConstraint {
         this.myFrictionConstraint = myFrictionConstraint;
     }
 
-    public static List<ContactConstraint> createConstraints(List<ContactManifold> contactManifolds) {
+    public static List<ContactConstraint> createConstraints(List<ContactManifold> contactManifolds, double restitution) {
         List<ContactConstraint> outputList = new ArrayList<>();
         for (ContactManifold manifold : contactManifolds) {
-            outputList.add(new ContactConstraint(manifold));
+            outputList.add(new ContactConstraint(manifold, restitution));
         }
         return outputList;
     }
@@ -54,20 +57,22 @@ public class ContactConstraint extends DynamicConstraint {
         Vector2 body2speed = contactManifold.getBody2().getVelocity();
         Vector2 body2rotSpeed = contactManifold.getContactPointRelativeBody2().cross(contactManifold.getBody2().getAngularVelocity()).times(-1);
 
-        double mass1 = contactManifold.getBody1().getMass();
-        double mass2 = contactManifold.getBody2().getMass();
+        // USE INVERSE MASS/INERTIA DIRECTLY
+        double invMass1 = contactManifold.getBody1().getInverseMass();
+        double invMass2 = contactManifold.getBody2().getInverseMass();
+        double invInertia1 = contactManifold.getBody1().getInverseInertia();
+        double invInertia2 = contactManifold.getBody2().getInverseInertia();
 
         double rel1CrossN = contactManifold.getContactPointRelativeBody1().cross(normal);
         double rel2CrossN = contactManifold.getContactPointRelativeBody2().cross(normal);
-
-        double inertia1 = contactManifold.getBody1().getInertiaMoment();
-        double inertia2 = contactManifold.getBody2().getInertiaMoment();
 
         Vector2 relativeVelocityVector = body2speed.plus(body2rotSpeed).minus(body1speed).minus(body1rotSpeed);
         double relativeVelocity = relativeVelocityVector.dot(normal);
 
         double numerator = relativeVelocity - bounceVelocity;
-        double denominator = 1.0/mass1 + 1.0/mass2 + (rel1CrossN * rel1CrossN) / inertia1 + (rel2CrossN * rel2CrossN) / inertia2;
+
+        // Clean denominator using inverse values
+        double denominator = invMass1 + invMass2 + (rel1CrossN * rel1CrossN) * invInertia1 + (rel2CrossN * rel2CrossN) * invInertia2;
 
         if (denominator == 0.0) return 0.0;
 
@@ -82,20 +87,21 @@ public class ContactConstraint extends DynamicConstraint {
     @Override
     public void updateVelocity(double realDeltaJ) {
         Vector2 normal = contactManifold.getNormalVector();
-        double mass1 = contactManifold.getBody1().getMass();
-        double mass2 = contactManifold.getBody2().getMass();
+
+        double invMass1 = contactManifold.getBody1().getInverseMass();
+        double invMass2 = contactManifold.getBody2().getInverseMass();
+        double invInertia1 = contactManifold.getBody1().getInverseInertia();
+        double invInertia2 = contactManifold.getBody2().getInverseInertia();
 
         double rel1CrossN = contactManifold.getContactPointRelativeBody1().cross(normal);
         double rel2CrossN = contactManifold.getContactPointRelativeBody2().cross(normal);
 
-        double inertia1 = contactManifold.getBody1().getInertiaMoment();
-        double inertia2 = contactManifold.getBody2().getInertiaMoment();
+        // Multiply by inverse mass. If frozen, invMass is 0.0, so velocity change is 0.0!
+        contactManifold.getBody1().addVelocity(normal.times(-realDeltaJ * invMass1));
+        contactManifold.getBody2().addVelocity(normal.times(realDeltaJ * invMass2));
 
-        contactManifold.getBody1().addVelocity(normal.times(-realDeltaJ / mass1));
-        contactManifold.getBody2().addVelocity(normal.times(realDeltaJ / mass2));
-
-        contactManifold.getBody1().addAngularVelocity(-rel1CrossN * realDeltaJ / inertia1);
-        contactManifold.getBody2().addAngularVelocity(rel2CrossN * realDeltaJ / inertia2);
+        contactManifold.getBody1().addAngularVelocity(-rel1CrossN * realDeltaJ * invInertia1);
+        contactManifold.getBody2().addAngularVelocity(rel2CrossN * realDeltaJ * invInertia2);
     }
 
     @Override
@@ -128,7 +134,7 @@ public class ContactConstraint extends DynamicConstraint {
         );
         double relativeVelocity = v2.minus(v1).dot(normal);
 
-        double restitution = 0.3;
+        double restitution = 0.9;
         if (relativeVelocity < -0.5) {
             bounceVelocity = -restitution * relativeVelocity;
         } else {
@@ -147,21 +153,23 @@ public class ContactConstraint extends DynamicConstraint {
         Vector2 body2PseudoSpeed = contactManifold.getBody2().getPseudoVelocity();
         Vector2 body2PseudoRotSpeed = contactManifold.getContactPointRelativeBody2().cross(contactManifold.getBody2().getPseudoAngularVelocity()).times(-1);
 
-        double mass1 = contactManifold.getBody1().getMass();
-        double mass2 = contactManifold.getBody2().getMass();
+        // Pull inverse mass and inertia directly
+        double invMass1 = contactManifold.getBody1().getInverseMass();
+        double invMass2 = contactManifold.getBody2().getInverseMass();
+        double invInertia1 = contactManifold.getBody1().getInverseInertia();
+        double invInertia2 = contactManifold.getBody2().getInverseInertia();
 
         double rel1CrossN = contactManifold.getContactPointRelativeBody1().cross(normal);
         double rel2CrossN = contactManifold.getContactPointRelativeBody2().cross(normal);
-
-        double inertia1 = contactManifold.getBody1().getInertiaMoment();
-        double inertia2 = contactManifold.getBody2().getInertiaMoment();
 
         // Calculate penetration error velocity profile
         Vector2 relativePseudoVelocityVector = body2PseudoSpeed.plus(body2PseudoRotSpeed).minus(body1PseudoSpeed).minus(body1PseudoRotSpeed);
         double relativePseudoVelocity = relativePseudoVelocityVector.dot(normal);
 
-        double numerator = relativePseudoVelocity - calculateBias(beta,1.0);
-        double denominator = 1.0/mass1 + 1.0/mass2 + (rel1CrossN * rel1CrossN) / inertia1 + (rel2CrossN * rel2CrossN) / inertia2;
+        double numerator = relativePseudoVelocity - calculateBias(beta, 1.0);
+
+        // Clean, non-destructive denominator using multiplication by inverse values
+        double denominator = invMass1 + invMass2 + (rel1CrossN * rel1CrossN) * invInertia1 + (rel2CrossN * rel2CrossN) * invInertia2;
 
         if (denominator == 0.0) return 0.0;
 
@@ -178,19 +186,20 @@ public class ContactConstraint extends DynamicConstraint {
     @Override
     public void updatePseudoVelocity(double realPseudoDeltaJ) {
         Vector2 normal = contactManifold.getNormalVector();
-        double mass1 = contactManifold.getBody1().getMass();
-        double mass2 = contactManifold.getBody2().getMass();
+
+        // Pull inverse mass and inertia directly
+        double invMass1 = contactManifold.getBody1().getInverseMass();
+        double invMass2 = contactManifold.getBody2().getInverseMass();
+        double invInertia1 = contactManifold.getBody1().getInverseInertia();
+        double invInertia2 = contactManifold.getBody2().getInverseInertia();
 
         double rel1CrossN = contactManifold.getContactPointRelativeBody1().cross(normal);
         double rel2CrossN = contactManifold.getContactPointRelativeBody2().cross(normal);
 
-        double inertia1 = contactManifold.getBody1().getInertiaMoment();
-        double inertia2 = contactManifold.getBody2().getInertiaMoment();
+        contactManifold.getBody1().addPseudoVelocity(normal.times(-realPseudoDeltaJ * invMass1));
+        contactManifold.getBody2().addPseudoVelocity(normal.times(realPseudoDeltaJ * invMass2));
 
-        contactManifold.getBody1().addPseudoVelocity(normal.times(-realPseudoDeltaJ / mass1));
-        contactManifold.getBody2().addPseudoVelocity(normal.times(realPseudoDeltaJ / mass2));
-
-        contactManifold.getBody1().addPseudoAngularVelocity(-rel1CrossN * realPseudoDeltaJ / inertia1);
-        contactManifold.getBody2().addPseudoAngularVelocity(rel2CrossN * realPseudoDeltaJ / inertia2);
+        contactManifold.getBody1().addPseudoAngularVelocity(-rel1CrossN * realPseudoDeltaJ * invInertia1);
+        contactManifold.getBody2().addPseudoAngularVelocity(rel2CrossN * realPseudoDeltaJ * invInertia2);
     }
 }

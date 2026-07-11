@@ -173,10 +173,10 @@ public class DistanceConstraint extends StaticConstraint {
 
         // J·M⁻¹·Jᵀ
         double denominator =
-                1.0 / getBody1().getMass()
-                        + 1.0 / getBody2().getMass()
-                        + Math.pow(realBody1relative.cross(dHat), 2) / getBody1().getInertiaMoment()
-                        + Math.pow(realBody2relative.cross(dHat), 2) / getBody2().getInertiaMoment();
+                getBody1().getInverseMass()
+                        + getBody2().getInverseMass()
+                        + Math.pow(realBody1relative.cross(dHat), 2) * getBody1().getInverseInertia()
+                        + Math.pow(realBody2relative.cross(dHat), 2) * getBody2().getInverseInertia();
 
         return -(numerator) / denominator;
     }
@@ -200,10 +200,10 @@ public class DistanceConstraint extends StaticConstraint {
 
         // J·M⁻¹·Jᵀ
         double denominator =
-                1.0 / getBody1().getMass()
-                        + 1.0 / getBody2().getMass()
-                        + Math.pow(realBody1relative.cross(dHat), 2) / getBody1().getInertiaMoment()
-                        + Math.pow(realBody2relative.cross(dHat), 2) / getBody2().getInertiaMoment();
+                getBody1().getInverseMass()
+                        + getBody2().getInverseMass()
+                        + Math.pow(realBody1relative.cross(dHat), 2) * getBody1().getInverseInertia()
+                        + Math.pow(realBody2relative.cross(dHat), 2) * getBody2().getInverseInertia();
 
         return -(numerator + getCurrentBias()) / denominator;
     }
@@ -217,10 +217,10 @@ public class DistanceConstraint extends StaticConstraint {
         Vector2 dHat = worldConnection2.minus(worldConnection1).normalized();
 
         // v += J^T * ΔJ / m,  ω += r × J^T * ΔJ / I
-        getBody1().addVelocity(dHat.times(-realDeltaJ / getBody1().getMass()));
-        getBody2().addVelocity(dHat.times( realDeltaJ / getBody2().getMass()));
-        getBody1().addAngularVelocity(-realBody1relative.cross(dHat) * realDeltaJ / getBody1().getInertiaMoment());
-        getBody2().addAngularVelocity( realBody2relative.cross(dHat) * realDeltaJ / getBody2().getInertiaMoment());
+        getBody1().addVelocity(dHat.times(-realDeltaJ * getBody1().getInverseMass()));
+        getBody2().addVelocity(dHat.times( realDeltaJ * getBody2().getInverseMass()));
+        getBody1().addAngularVelocity(-realBody1relative.cross(dHat) * realDeltaJ * getBody1().getInverseInertia());
+        getBody2().addAngularVelocity( realBody2relative.cross(dHat) * realDeltaJ * getBody2().getInverseInertia());
     }
 
     @Override
@@ -232,10 +232,10 @@ public class DistanceConstraint extends StaticConstraint {
         Vector2 dHat = worldConnection2.minus(worldConnection1).normalized();
 
         // v += J^T * ΔJ / m,  ω += r × J^T * ΔJ / I
-        getBody1().addPseudoVelocity(dHat.times(-realPseudoDeltaJ / getBody1().getMass()));
-        getBody2().addPseudoVelocity(dHat.times( realPseudoDeltaJ / getBody2().getMass()));
-        getBody1().addPseudoAngularVelocity(-realBody1relative.cross(dHat) * realPseudoDeltaJ / getBody1().getInertiaMoment());
-        getBody2().addPseudoAngularVelocity( realBody2relative.cross(dHat) * realPseudoDeltaJ / getBody2().getInertiaMoment());
+        getBody1().addPseudoVelocity(dHat.times(-realPseudoDeltaJ * getBody1().getInverseMass()));
+        getBody2().addPseudoVelocity(dHat.times( realPseudoDeltaJ * getBody2().getInverseMass()));
+        getBody1().addPseudoAngularVelocity(-realBody1relative.cross(dHat) * realPseudoDeltaJ * getBody1().getInverseInertia());
+        getBody2().addPseudoAngularVelocity( realBody2relative.cross(dHat) * realPseudoDeltaJ * getBody2().getInverseInertia());
     }
 
     @Override
@@ -243,6 +243,6 @@ public class DistanceConstraint extends StaticConstraint {
         Vector2 worldConnection1 = getBody1().getPosition().plus(getBody1relative().rotate(getBody1().getAngle()));
         Vector2 worldConnection2 = getBody2().getPosition().plus(getBody2relative().rotate(getBody2().getAngle()));
         double distance = worldConnection1.distance(worldConnection2);
-        return (1 / dt) * (distance - getFixedDistance());
+        return (beta / 1.0) * (distance - getFixedDistance());
     }
 }

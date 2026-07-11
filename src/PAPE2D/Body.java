@@ -133,6 +133,26 @@ public abstract class Body {
         this.inertiaMoment = inertiaMoment;
     }
 
+    /**
+     * Get the inverse mass of this body
+     *
+     * @return 1/mass or 0 if frozen
+     */
+    public double getInverseMass() {
+        if (this.isFrozen()) return 0.0;
+        return 1.0 / this.mass;
+    }
+
+    /**
+     * Get the inverse inertia of this body
+     *
+     * @return 1/inertia or 0 if frozen
+     */
+    public double getInverseInertia() {
+        if (this.isFrozen()) return 0.0;
+        return 1.0 / this.inertiaMoment;
+    }
+
     // =================================================================================
     // Position & velocity
     // =================================================================================
