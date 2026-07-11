@@ -19,11 +19,12 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
 
 ## 📅 Timeline
 
-| Milestone               | Date              |
-|:------------------------|:------------------|
-| **Research Started**    | December 24, 2025 |
-| **Development Started** | March 29, 2026    |
-| **Testing Started**     | June 21, 2026     |
+| Milestone                | Date              |
+|:-------------------------|:------------------|
+| **Research Started**     | December 24, 2025 |
+| **Development Started**  | March 29, 2026    |
+| **Testing Started**      | June 21, 2026     |
+| **First Stable Release** | July 11, 2026     |
 
 ---
 
