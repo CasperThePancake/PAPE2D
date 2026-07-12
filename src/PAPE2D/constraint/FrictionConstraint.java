@@ -4,6 +4,9 @@ import PAPE2D.DynamicConstraint;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.Vector2;
 
+/**
+ * Constraint that reduces tangential motion between two bodies up to a maximum
+ */
 public class FrictionConstraint extends DynamicConstraint {
     private ContactConstraint myContactConstraint;
     private ContactManifold contactManifold;
@@ -41,7 +44,7 @@ public class FrictionConstraint extends DynamicConstraint {
 
         // Friction has no position bias!
         double numerator = relativeVelocity;
-        double denominator = 1.0/mass1 + 1.0/mass2 + (rel1CrossT * rel1CrossT) / inertia1 + (rel2CrossT * rel2CrossT) / inertia2;
+        double denominator = 1.0 * contactManifold.getBody1().getInverseMass() + 1.0 * contactManifold.getBody2().getInverseMass() + (rel1CrossT * rel1CrossT) * contactManifold.getBody1().getInverseInertia() + (rel2CrossT * rel2CrossT) * contactManifold.getBody2().getInverseInertia();
 
         if (denominator == 0.0) return 0.0;
 
@@ -71,11 +74,11 @@ public class FrictionConstraint extends DynamicConstraint {
         double inertia1 = contactManifold.getBody1().getInertiaMoment();
         double inertia2 = contactManifold.getBody2().getInertiaMoment();
 
-        contactManifold.getBody1().addVelocity(tangent.times(-realDeltaJ / mass1));
-        contactManifold.getBody2().addVelocity(tangent.times(realDeltaJ / mass2));
+        contactManifold.getBody1().addVelocity(tangent.times(-realDeltaJ * contactManifold.getBody1().getInverseMass()));
+        contactManifold.getBody2().addVelocity(tangent.times(realDeltaJ * contactManifold.getBody2().getInverseMass()));
 
-        contactManifold.getBody1().addAngularVelocity(-rel1CrossT * realDeltaJ / inertia1);
-        contactManifold.getBody2().addAngularVelocity(rel2CrossT * realDeltaJ / inertia2);
+        contactManifold.getBody1().addAngularVelocity(-rel1CrossT * realDeltaJ * contactManifold.getBody1().getInverseInertia());
+        contactManifold.getBody2().addAngularVelocity(rel2CrossT * realDeltaJ * contactManifold.getBody2().getInverseInertia());
     }
 
     @Override

@@ -14,7 +14,15 @@ public abstract class BroadPhaseCollisionSystem {
     // Attributes
     // =================================================================================
 
-    // Empty...
+    protected World linkedWorld;
+
+    // =================================================================================
+    // Linked world
+    // =================================================================================
+
+    void setLinkedWorld(World linkedWorld) {
+        this.linkedWorld = linkedWorld;
+    }
 
     // =================================================================================
     // Abstract methods

@@ -7,6 +7,9 @@ import PAPE2D.helper.Vector2;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Constraint that forces two possibly colliding bodies to stop penetrating (and bounce back)
+ */
 public class ContactConstraint extends DynamicConstraint {
     private ContactManifold contactManifold;
     private FrictionConstraint myFrictionConstraint;

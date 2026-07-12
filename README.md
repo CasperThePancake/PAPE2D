@@ -77,11 +77,12 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
 - [x] Bugs to fix later
   - [x] Semi-horizontal edges show rendering artifacts
 
-### Additional features
+### Additional features (optional)
 - [ ] Optional visual indicator for Spring force
 - [ ] Body visual sprites
 - [x] Option for a Body to not have collision
-- [ ] General gravity force
+- [x] General gravity force
+- [ ] Welds (notoriously tough to implement)
 
 ### Angry Birds
 - [ ] Build the *Angry Birds* demonstration

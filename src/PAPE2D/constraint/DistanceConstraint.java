@@ -2,8 +2,12 @@ package PAPE2D.constraint;
 
 import PAPE2D.Body;
 import PAPE2D.StaticConstraint;
+import PAPE2D.World;
 import PAPE2D.helper.Vector2;
 
+/**
+ * Constraint that enforces points on two bodies to always be at some fixed distance
+ */
 public class DistanceConstraint extends StaticConstraint {
     // =================================================================================
     // Attributes
@@ -244,5 +248,10 @@ public class DistanceConstraint extends StaticConstraint {
         Vector2 worldConnection2 = getBody2().getPosition().plus(getBody2relative().rotate(getBody2().getAngle()));
         double distance = worldConnection1.distance(worldConnection2);
         return (beta / 1.0) * (distance - getFixedDistance());
+    }
+
+    @Override
+    public void resetConstraint(World world) {
+        // Nothing to reset...
     }
 }

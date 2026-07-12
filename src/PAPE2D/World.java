@@ -3,13 +3,16 @@ package PAPE2D;
 import PAPE2D.broadphase.SweepAndPrune;
 import PAPE2D.constraint.ContactConstraint;
 import PAPE2D.constraint.FrictionConstraint;
+import PAPE2D.helper.CollisionExclusion;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.PotentialCollidingPair;
 import PAPE2D.helper.Vector2;
 import PAPE2D.narrowphase.SAT;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The main frame holding all simulation information
@@ -29,6 +32,7 @@ public class World {
     private double beta;
     private double detail;
     private double restitution;
+    private Set<CollisionExclusion> collisionExclusions = new HashSet<>();
 
     // =================================================================================
     // Constructors
@@ -37,7 +41,7 @@ public class World {
      * Create a world with recommended settings
      */
     public World() {
-        this(new SweepAndPrune(), new SAT(), 0.3, 5, 0.9);
+        this(new SweepAndPrune(), new SAT(), 0.3, 5, 0.7);
     }
 
     /**
@@ -55,6 +59,8 @@ public class World {
         this.beta = beta;
         this.detail = detail;
         this.restitution = restitution;
+
+        broadPhase.setLinkedWorld(this);
     }
 
     // =================================================================================
@@ -72,6 +78,11 @@ public class World {
             tickListener.onTick(this, linkedLoop, dt);
         }
 
+        // Optionally reset static constraints (i.e. (re-)disable collisions for welds)
+        for (StaticConstraint s : staticConstraints) {
+            s.resetConstraint(this);
+        }
+
         // Perform broad phase collision detection
         List<PotentialCollidingPair> potentialPairs = broadPhase.getPotentialCollidingPairs();
 
@@ -80,6 +91,7 @@ public class World {
 
         // Initialize list of all constraints
         List<Constraint> constraints = new ArrayList<>(List.copyOf(staticConstraints));
+
         List<ContactConstraint> contactConstraints = ContactConstraint.createConstraints(contactManifolds,restitution);
         for (ContactConstraint c : contactConstraints) {
             constraints.add(c);
@@ -373,5 +385,79 @@ public class World {
      */
     public void removePostUpdateTickListener(TickListener tickListener) {
         this.postUpdateListeners.remove(tickListener);
+    }
+
+    // =================================================================================
+    // Collision exclusion rules
+    // =================================================================================
+
+    /**
+     * Add a new collision exclusion rule to the world's list
+     *
+     * @param collisionExclusion Given collision exclusion rule
+     */
+    public void addCollisionExclusion(CollisionExclusion collisionExclusion) {
+        collisionExclusions.add(collisionExclusion);
+    }
+
+    /**
+     * Remove a collision exclusion rule from the world's list
+     *
+     * @param collisionExclusion Given collision exclusion rule
+     */
+    public void removeCollisionExclusion(CollisionExclusion collisionExclusion) {
+        collisionExclusions.remove(collisionExclusion);
+    }
+
+    /**
+     * Disable the collisions between the two given bodies by creating a collision exclusion rule
+     *
+     * @param body1 Given first body
+     * @param body2 Given second body
+     */
+    public void disableCollisions(Body body1, Body body2) {
+        addCollisionExclusion(new CollisionExclusion(body1, body2));
+    }
+
+    /**
+     * Enable the collisions between the two given bodies by removing any associated collision exclusion rules
+     *
+     * @param body1 Given first body
+     * @param body2 Given second body
+     */
+    public void enableCollisions(Body body1, Body body2) {
+        removeCollisionExclusion(new CollisionExclusion(body1, body2));
+    }
+
+    /**
+     * Check if collisions between the two given bodies are (specifically) disabled
+     *
+     * @param body1 Given first body
+     * @param body2 Given second body
+     *
+     * @return True if there exists a collision exclusion rule for the two bodies; false otherwise
+     */
+    public boolean isCollisionDisabled(Body body1, Body body2) {
+        return collisionExclusions.contains(new CollisionExclusion(body1, body2));
+    }
+
+    /**
+     * Check if a given collision exclusion rule is present in the world's list
+     *
+     * @param collisionExclusion Given collision exclusion rule
+     *
+     * @return True if it is present; false otherwise
+     */
+    public boolean hasCollisionExclusion(CollisionExclusion collisionExclusion) {
+        return collisionExclusions.contains(collisionExclusion);
+    }
+
+    /**
+     * Get the set of all collision exclusion rules for this world
+     *
+     * @return Set of all collision exclusion rules for this world
+     */
+    public Set<CollisionExclusion> getCollisionExclusions() {
+        return collisionExclusions;
     }
 }

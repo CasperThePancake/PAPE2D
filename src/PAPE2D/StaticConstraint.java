@@ -13,4 +13,6 @@ public abstract class StaticConstraint extends Constraint {
     public void capPseudoJ() {
         // Same here!
     }
+
+    public abstract void resetConstraint(World world);
 }

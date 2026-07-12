@@ -1,6 +1,7 @@
 package PAPE2D.broadphase;
 
 import PAPE2D.*;
+import PAPE2D.bodies.Square;
 import PAPE2D.helper.PotentialCollidingPair;
 
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ public class SweepAndPrune extends BroadPhaseCollisionSystem {
     // =================================================================================
 
     public SweepAndPrune() {
+
     }
 
     // =================================================================================
@@ -129,7 +131,15 @@ public class SweepAndPrune extends BroadPhaseCollisionSystem {
             if (e.getBound() == Bound.MIN) {
                 for (Body o : scanBuffer) { // Everything else in scanBuffer is an overlap candidate
                     if (o.AABBOverlaps(e.getOwner())) { // Check full AABB overlap
-                        pairBuffer.add(new PotentialCollidingPair(o,e.getOwner()));
+                        if (!linkedWorld.isCollisionDisabled(o,e.getOwner())) { // Check for collision exclusion rules
+                            // Temporary debug check inside SweepAndPrune loop:
+                            if (o instanceof Square && e.getOwner() instanceof Square) {
+                                System.out.println("SAP Check | Exclusion List Size: " + linkedWorld.getCollisionExclusions().size() +
+                                        " | Body1 ID: " + System.identityHashCode(o) +
+                                        " | Body2 ID: " + System.identityHashCode(e.getOwner()));
+                            }
+                            pairBuffer.add(new PotentialCollidingPair(o, e.getOwner()));
+                        }
                     }
                 }
                 scanBuffer.add(e.getOwner());
