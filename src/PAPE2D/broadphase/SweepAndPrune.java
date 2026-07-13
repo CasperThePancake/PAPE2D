@@ -132,12 +132,6 @@ public class SweepAndPrune extends BroadPhaseCollisionSystem {
                 for (Body o : scanBuffer) { // Everything else in scanBuffer is an overlap candidate
                     if (o.AABBOverlaps(e.getOwner())) { // Check full AABB overlap
                         if (!linkedWorld.isCollisionDisabled(o,e.getOwner())) { // Check for collision exclusion rules
-                            // Temporary debug check inside SweepAndPrune loop:
-                            if (o instanceof Square && e.getOwner() instanceof Square) {
-                                System.out.println("SAP Check | Exclusion List Size: " + linkedWorld.getCollisionExclusions().size() +
-                                        " | Body1 ID: " + System.identityHashCode(o) +
-                                        " | Body2 ID: " + System.identityHashCode(e.getOwner()));
-                            }
                             pairBuffer.add(new PotentialCollidingPair(o, e.getOwner()));
                         }
                     }

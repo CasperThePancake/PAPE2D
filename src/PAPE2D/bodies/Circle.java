@@ -114,11 +114,11 @@ public class Circle extends Body {
     @Override
     public void render(PhysicsLoop physicsLoop) {
         // Calculate pixel coordinates
-        double cX = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX(),getPosition().getY()})[0];
-        double cY = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX(),getPosition().getY()})[1];
+        double cX = physicsLoop.worldToScreenCoords(getPosition()).getX();
+        double cY = physicsLoop.worldToScreenCoords(getPosition()).getY();
 
         // Calculate radius properly
-        double xFurther = physicsLoop.worldToScreenCoords(new double[]{getPosition().getX()+getRadius(),getPosition().getY()})[0];
+        double xFurther = physicsLoop.worldToScreenCoords(new Vector2(getPosition().getX()+getRadius(),getPosition().getY())).getX();
         double screenRadius = xFurther - cX;
 
         physicsLoop.drawCircle(cX,cY,screenRadius);

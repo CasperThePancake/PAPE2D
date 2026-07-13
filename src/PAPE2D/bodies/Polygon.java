@@ -368,7 +368,7 @@ public class Polygon extends Body {
         List<Vector2> screenVertices = new ArrayList<>();
 
         for (Vector2 worldVertex : worldVertices) {
-            screenVertices.add(new Vector2(physicsLoop.worldToScreenCoords(new double[]{worldVertex.getX(),worldVertex.getY()})[0], physicsLoop.worldToScreenCoords(new double[]{worldVertex.getX(),worldVertex.getY()})[1]));
+            screenVertices.add(physicsLoop.worldToScreenCoords(worldVertex));
         }
 
         physicsLoop.drawPolygon(screenVertices.toArray(new Vector2[0]));

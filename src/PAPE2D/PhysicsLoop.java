@@ -6,14 +6,13 @@ import javax.swing.JFrame;
 import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Arrays;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.MouseInfo;
+import java.awt.Point;
 
 /**
  * Physics loop class linked to a World that runs, simulates, and renders its contents in a thread
@@ -123,6 +122,23 @@ public class PhysicsLoop extends Canvas implements Runnable {
     }
 
     /**
+     * Get the current position of the user's cursor relative to this canvas
+     *
+     * @return (x,y) position of cursor relative to the canvas's top-left corner
+     */
+    public Vector2 getMouseScreenPosition() {
+        Point cursor = MouseInfo.getPointerInfo().getLocation();
+
+        // Guard against the canvas not being on-screen yet (e.g. called before the window is shown)
+        if (!isShowing()) {
+            return new Vector2(0, 0);
+        }
+
+        Point origin = getLocationOnScreen();
+        return new Vector2(cursor.getX() - origin.getX(), cursor.getY() - origin.getY());
+    }
+
+    /**
      * Returns and resets the current mouse wheel scroll delta
      *
      * @return Mouse wheel scroll delta
@@ -146,11 +162,11 @@ public class PhysicsLoop extends Canvas implements Runnable {
      *
      * @note Method does not check whether given world coordinates appear on the screen, so extra boundary checks are recommended!
      */
-    public double[] worldToScreenCoords(double[] worldCoords) {
-        double worldX = worldCoords[0];
-        double worldY = worldCoords[1];
+    public Vector2 worldToScreenCoords(Vector2 worldCoords) {
+        double worldX = worldCoords.getX();
+        double worldY = worldCoords.getY();
 
-        return new double[]{(worldX - camX)*camZoom + (double) WIDTH/2, (double) HEIGHT/2 - (worldY - camY)*camZoom};
+        return new Vector2((worldX - camX)*camZoom + (double) WIDTH/2, (double) HEIGHT/2 - (worldY - camY)*camZoom);
     }
 
     /**
@@ -162,16 +178,19 @@ public class PhysicsLoop extends Canvas implements Runnable {
      *
      * @throws IllegalArgumentException If given camera coordinates fall outside the screen boundaries
      */
-    public double[] screenToWorldCoords(double[] screenCoords) throws IllegalArgumentException {
-        double screenX = screenCoords[0];
-        double screenY = screenCoords[1];
+    public Vector2 screenToWorldCoords(Vector2 screenCoords) throws IllegalArgumentException {
+        double screenX = screenCoords.getX();
+        double screenY = screenCoords.getY();
 
         // Valid coordinates check
         if (screenX < 0 || screenX > WIDTH || screenY < 0 || screenY > HEIGHT) {
             throw new IllegalArgumentException("Given camera coordinates fall outside the screen boundaries!");
         }
 
-        return new double[]{(screenX-(double) WIDTH/2) / camZoom + camX, (screenY-(double) HEIGHT/2) / camZoom + camY};
+        return new Vector2(
+                (screenX - (double) WIDTH / 2) / camZoom + camX,
+                camY - (screenY - (double) HEIGHT / 2) / camZoom
+        );
     }
 
     /**
