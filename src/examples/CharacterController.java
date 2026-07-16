@@ -36,6 +36,11 @@ void main() {
     world.addBody(myWall1);
     world.addBody(myWall2);
 
+    // Other obstacles
+    Body slope = new Rectangle(new Vector2(400,25),150,25,new Vector2(),Math.PI/5,0,1);
+    slope.addFlag(Flag.FROZEN);
+    world.addBody(slope);
+
     // Forces and camera movement
     world.addUniversalForce(new Gravity(500));
     world.addPreUpdateTickListener(new CameraMovement(300));
