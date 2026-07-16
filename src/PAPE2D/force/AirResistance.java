@@ -1,6 +1,7 @@
 package PAPE2D.force;
 
 import PAPE2D.Body;
+import PAPE2D.Flag;
 import PAPE2D.UniversalForce;
 
 /**
@@ -51,6 +52,9 @@ public class AirResistance extends UniversalForce {
     @Override
     public void applyAcceleration(double dt) {
         for (Body b : getBodies()) {
+            if (b.hasFlag(Flag.IGNORE_UNIVERSAL_FORCES)) {
+                continue;
+            }
             b.addVelocity(b.getVelocity().times(-resistance*dt/b.getMass()));
         }
     }

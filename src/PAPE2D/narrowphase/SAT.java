@@ -1,6 +1,7 @@
 package PAPE2D.narrowphase;
 
 import PAPE2D.Body;
+import PAPE2D.Flag;
 import PAPE2D.bodies.Circle;
 import PAPE2D.bodies.Polygon;
 import PAPE2D.NarrowPhaseCollisionSystem;
@@ -135,7 +136,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
                 penetrationDepths.add(-separation2);
             }
 
-            if (incidentBody.doesDebug() || referenceBody.doesDebug()) {
+            if (incidentBody.hasFlag(Flag.DEBUG) || referenceBody.hasFlag(Flag.DEBUG)) {
                 IO.println("Amount of contact points: "+contactPoints.size());
             }
         }

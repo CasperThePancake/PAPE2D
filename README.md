@@ -10,10 +10,11 @@ PAPE2D is a custom, constraint-based 2D rigid-body physics engine built entirely
 
 ## 🚀 The Vision
 
-I am currently developing the foundation of PAPE2D alongside a comprehensive, textbook-style course detailing the physics and mathematics powering the engine. 
+I started building this library while following an undergraduate course on _Classical Mechanics_. It piqued my interest in applying the non-Newtonian approaches to mechanics computationally. Once I discovered _Gauss's principle of least constraint_, I was hooked on the physics background of these engines. 8 months later I reached the first stable release of PAPE2D, with fast and accurate forces and  collisions.
 
-* **The Ultimate Goal:** Recreate the first level of *Angry Birds* using PAPE2D—the definitive benchmark for a reliable 2D physics engine.
-* **Development Note:** Progress comes in sporadic bursts between balancing this project and my Master’s degree in Physics!
+It was not easy to get this up and running: I hit many brick walls where I spent hours researching how to solve a problem, which algorithm to use, which equations to derive, ... So for those who come after: this project includes a 70-page PDF course outlining all the physics and coding in mathematical detail. Or you can start from nothing, like I did!
+
+Now I want to keep building the library, to make it more accessible and actually useful as a tool for other developers and researchers. This means implementing more (complex) features, as well as side-tools like sprite rendering.
 
 ---
 
@@ -28,63 +29,21 @@ I am currently developing the foundation of PAPE2D alongside a comprehensive, te
 
 ---
 
-## 🛠️ Roadmap & Progress
+## 🛠️ Roadmap
 
-### Core & Collision Detection
-- [x] Implement Sweep and Prune (Broadphase)
-- [x] Implement abstract `Body` class
-- [x] Implement `Circle` primitive
-- [x] Implement `Polygon` primitive
-- [x] Implement `Rectangle` & `Square` primitives
-- [x] Implement Separating Axis Theorem (SAT / Narrowphase)
+### Planned features
+These are features I will definitely add in the future.
 
-### Dynamics & Forces
-- [x] Implement basic solver logic
-- [x] Implement `ForceGenerator` base
-- [x] Implement `Gravity` force
-- [x] Implement `AirResistance` force
-- [x] Implement `Spring` force
+- [ ] More realistic friction coefficient calculation
+- [ ] More realistic restitution calculation
+- [ ] Better air resistance and effect on rotation
 
-### Constraints & Resolution
-- [x] Implement abstract `Constraint` class
-- [x] Implement constraint solver logic
-- [x] Implement `DistanceConstraint`
-- [x] Implement `ContactConstraint`
-- [x] Implement `FrictionConstraint`
+### Possible features
+These are features I would like to add, but are more difficult and require more consideration.
 
-### Next Steps & Application
-- [x] Implement remaining core methods
-- [x] Write geometry rendering methods (with antialiasing)
-- [x] Implement rendering per `Body` class
-
-### Testing
-- [x] Body rendering without motion
-  - [x] Circle
-  - [x] Polygon
-  - [x] Rectangle
-  - [x] Square
-  - [x] Rotated versions
-- [x] Fixed-velocity motion
-- [x] Forces
-  - [x] Gravity
-  - [x] Air resistance
-  - [x] Springs
-- [x] Constraints
-  - [x] Distance constraint
-  - [x] Collisions
-- [x] General checks
-  - [x] Antialiasing
-- [x] Bugs to fix later
-  - [x] Semi-horizontal edges show rendering artifacts
-
-### Additional features (optional)
-- [ ] Optional visual indicator for Spring force
-- [ ] Body visual sprites
-- [x] Option for a Body to not have collision
-- [x] General gravity force
+- [ ] Visual indicator for spring forces and distance constraints
+- [ ] Sprite rendering
 - [ ] Welds (notoriously tough to implement)
-
-### Angry Birds
-- [ ] Build the *Angry Birds* demonstration
-
-> *More milestones will be added as the engine evolves.*
+- [ ] CCD to prevent tunneling (as optional flag)
+- [ ] Support for concave polygons (probably requires welding)
+- [ ] Revolute (Hinge) and Prismatic (Slider) Joints

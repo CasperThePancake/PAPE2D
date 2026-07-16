@@ -27,6 +27,12 @@ public class CameraMovement implements TickListener {
         tickedPhysicsLoop.setCamX(tickedPhysicsLoop.getCamX() + dx);
         tickedPhysicsLoop.setCamY(tickedPhysicsLoop.getCamY() + dy);
 
+        // Display current levels
+        if (tickedPhysicsLoop.isKeyDown(KeyEvent.VK_ENTER)) {
+            IO.println("Cam position: ("+tickedPhysicsLoop.getCamX()+","+tickedPhysicsLoop.getCamY()+")");
+            IO.println("Cam zoom: "+tickedPhysicsLoop.getCamZoom());
+        }
+
         // Zooming using scroll wheel
         int scrollAmount = tickedPhysicsLoop.flushMouseWheelDelta();
         if (scrollAmount != 0) {

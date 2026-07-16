@@ -1,6 +1,7 @@
 package PAPE2D.force;
 
 import PAPE2D.Body;
+import PAPE2D.Flag;
 import PAPE2D.UniversalForce;
 import PAPE2D.helper.Vector2;
 
@@ -59,6 +60,9 @@ public class Gravity extends UniversalForce {
     public void applyAcceleration(double dt) {
         Vector2 gravity = new Vector2(0,-getG());
         for (Body b : getBodies()) {
+            if (b.hasFlag(Flag.IGNORE_UNIVERSAL_FORCES)) {
+                continue;
+            }
             b.addVelocity(gravity.times(dt));
         }
     }

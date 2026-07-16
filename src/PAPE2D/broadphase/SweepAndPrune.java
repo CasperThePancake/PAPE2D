@@ -125,7 +125,7 @@ public class SweepAndPrune extends BroadPhaseCollisionSystem {
         scanBuffer.clear();
 
         for (Edge e : xEdges) {
-            if (!e.getOwner().hasCollision()) {
+            if (e.getOwner().hasFlag(Flag.NO_COLLISION)) {
                 continue; // Make it impossible for non-collision bodies to ever appear in a collision!
             }
             if (e.getBound() == Bound.MIN) {

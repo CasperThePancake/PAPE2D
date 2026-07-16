@@ -137,7 +137,6 @@ public class ContactConstraint extends DynamicConstraint {
         );
         double relativeVelocity = v2.minus(v1).dot(normal);
 
-        double restitution = 0.9;
         if (relativeVelocity < -0.5) {
             bounceVelocity = -restitution * relativeVelocity;
         } else {

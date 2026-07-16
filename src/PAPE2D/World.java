@@ -136,10 +136,14 @@ public class World {
 
         // Apply the accumulated pseudo-velocities to fix positions cleanly
         for (Body b : bodies) {
-            if (b.isFrozen()) {
+            if (b.hasFlag(Flag.FROZEN)) {
                 b.setPseudoVelocity(new Vector2());
                 b.setPseudoAngularVelocity(0);
                 continue;
+            } else if (b.hasFlag(Flag.FROZEN_TRANSLATION)) {
+                b.setPseudoVelocity(new Vector2());
+            } else if (b.hasFlag(Flag.FROZEN_ROTATION)) {
+                b.setPseudoAngularVelocity(0);
             }
             b.setPosition(b.getPosition().plus(b.getPseudoVelocity()));
             b.setAngle(b.getAngle() + b.getPseudoAngularVelocity());
@@ -147,10 +151,14 @@ public class World {
 
         // Perform standard time step integration
         for (Body b : bodies) {
-            if (b.isFrozen()) {
+            if (b.hasFlag(Flag.FROZEN)) {
                 b.setVelocity(new Vector2());
                 b.setAngularVelocity(0);
                 continue;
+            } else if (b.hasFlag(Flag.FROZEN_TRANSLATION)) {
+                b.setVelocity(new Vector2());
+            } else if (b.hasFlag(Flag.FROZEN_ROTATION)) {
+                b.setAngularVelocity(0);
             }
             b.setPosition(b.getPosition().plus(b.getVelocity().times(dt)));
             b.setAngle(b.getAngle() + dt * b.getAngularVelocity());
@@ -160,7 +168,7 @@ public class World {
         for (Body b : bodies) {
             b.updateInternally();
             b.updateAABB();
-            if (b.doesDebug()) {
+            if (b.hasFlag(Flag.DEBUG)) {
                 IO.println("pos: "+b.getPosition());
             }
         }

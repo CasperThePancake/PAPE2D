@@ -2,7 +2,9 @@ package PAPE2D;
 
 import PAPE2D.helper.Vector2;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Abstract rigid body class
@@ -29,9 +31,7 @@ public abstract class Body {
     private double AABBminX, AABBmaxX, AABBminY, AABBmaxY;
     private Vector2 pseudoVelocity;
     private double pseudoAngularVelocity = 0;
-    private boolean isFrozen = false;
-    private boolean hasCollision = true;
-    private boolean doDebug = false;
+    private Set<Flag> flags = new HashSet<>();
 
     // =================================================================================
     // Constructors
@@ -139,7 +139,7 @@ public abstract class Body {
      * @return 1/mass or 0 if frozen
      */
     public double getInverseMass() {
-        if (this.isFrozen()) return 0.0;
+        if (hasFlag(Flag.FROZEN) || hasFlag(Flag.FROZEN_TRANSLATION)) return 0.0;
         return 1.0 / this.mass;
     }
 
@@ -149,7 +149,7 @@ public abstract class Body {
      * @return 1/inertia or 0 if frozen
      */
     public double getInverseInertia() {
-        if (this.isFrozen()) return 0.0;
+        if (hasFlag(Flag.FROZEN) || hasFlag(Flag.FROZEN_ROTATION)) return 0.0;
         return 1.0 / this.inertiaMoment;
     }
 
@@ -401,56 +401,31 @@ public abstract class Body {
     // =================================================================================
 
     /**
-     * Check whether this body is frozen or not, meaning its velocity is reset to zero at all times
+     * Add a flag to this body
      *
-     * @return True if the body is frozen; false otherwise
+     * @param flag Given flag
      */
-    public boolean isFrozen() {
-        return isFrozen;
+    public void addFlag(Flag flag) {
+        flags.add(flag);
     }
 
     /**
-     * Set whether this body is frozen or not, meaning its velocity is reset to zero at all times if true
+     * Check if this body has a given flag
      *
-     * @param frozen Given frozen boolean
+     * @param flag Given flag
+     *
+     * @return True if body has flag; false otherwise
      */
-    public void setFrozen(boolean frozen) {
-        isFrozen = frozen;
+    public boolean hasFlag(Flag flag) {
+        return flags.contains(flag);
     }
 
     /**
-     * Check whether this body has collisions turned on
+     * Remove a flag from this body
      *
-     * @return True if the body has collisions; false otherwise
+     * @param flag Given flag
      */
-    public boolean hasCollision() {
-        return hasCollision;
-    }
-
-    /**
-     * Set whether this body has collisions turned on or not
-     *
-     * @param hasCollision Boolean indicating whether the body should have collisions or not
-     */
-    public void setCollision(boolean hasCollision) {
-        this.hasCollision = hasCollision;
-    }
-
-    /**
-     * Check whether this body displays debug information (intended for developers only)
-     *
-     * @return True if it displays debug information; false otherwise
-     */
-    public boolean doesDebug() {
-        return doDebug;
-    }
-
-    /**
-     * Set whether to display debug information for this body (intended for developers only)
-     *
-     * @param doDebug True if you want this body to display debug information
-     */
-    public void setDebug(boolean doDebug) {
-        this.doDebug = doDebug;
+    public void removeFlag(Flag flag) {
+        flags.remove(flag);
     }
 }

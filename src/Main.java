@@ -1,4 +1,5 @@
 import PAPE2D.Body;
+import PAPE2D.Flag;
 import PAPE2D.PhysicsLoop;
 import PAPE2D.World;
 import PAPE2D.bodies.Rectangle;
@@ -20,23 +21,23 @@ public class Main {
         World world = new World();
         PhysicsLoop loop = new PhysicsLoop(world, 200);
 
-        Body myBody1 = new Square(new Vector2(50,100),50,new Vector2(),0,0,1);
-        Body myBody2 = new Square(new Vector2(100,150),50,new Vector2(),0,0,1);
+        Body myBody1 = new Square(new Vector2(50,100),50,new Vector2(0,0),1,0,1);
+        Body myBody2 = new Square(new Vector2(100,150),50,new Vector2(-50,-50),0,0,1);
 
         world.addBody(myBody1);
         world.addBody(myBody2);
 
-        world.addStaticConstraint(new AngularConstraint(myBody1,myBody2));
+        myBody1.addFlag(Flag.FROZEN_TRANSLATION);
 
         // Floor
         Body myFloor1 = new Rectangle(new Vector2(-500,0),1000,50,1);
         Body myFloor2 = new Rectangle(new Vector2(-500,500),1000,50,1);
         Body myWall1 = new Rectangle(new Vector2(500,500),50,500,1);
         Body myWall2 = new Rectangle(new Vector2(-550,500),50,500,1);
-        myFloor1.setFrozen(true);
-        myFloor2.setFrozen(true);
-        myWall1.setFrozen(true);
-        myWall2.setFrozen(true);
+        myFloor1.addFlag(Flag.FROZEN);
+        myFloor2.addFlag(Flag.FROZEN);
+        myWall1.addFlag(Flag.FROZEN);
+        myWall2.addFlag(Flag.FROZEN);
 
         world.addBody(myFloor1);
         world.addBody(myFloor2);
