@@ -34,8 +34,6 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Planned features
 These are features I will definitely add in the future.
 
-- [ ] More realistic friction coefficient calculation
-- [ ] More realistic restitution calculation
 - [ ] Better air resistance and effect on rotation
 
 ### Possible features
