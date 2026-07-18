@@ -32,6 +32,10 @@ public abstract class Body {
     private Vector2 pseudoVelocity;
     private double pseudoAngularVelocity = 0;
     private Set<Flag> flags = new HashSet<>();
+    public static double DEFAULT_RESTITUTION = 0.7;
+    private double restitution = DEFAULT_RESTITUTION;
+    public static double DEFAULT_FRICTION_COEFFICIENT = 1;
+    private double frictionCoefficient = DEFAULT_FRICTION_COEFFICIENT;
 
     // =================================================================================
     // Constructors
@@ -380,6 +384,52 @@ public abstract class Body {
                 && (this.getEdgeValue(Axis.X,Bound.MAX) >= other.getEdgeValue(Axis.X,Bound.MIN))
                 && (this.getEdgeValue(Axis.Y,Bound.MIN) <= other.getEdgeValue(Axis.Y,Bound.MAX))
                 && (this.getEdgeValue(Axis.Y,Bound.MAX) >= other.getEdgeValue(Axis.Y,Bound.MIN));
+    }
+
+    // =================================================================================
+    // Restitution
+    // =================================================================================
+
+    /**
+     * Get this body's restitution value
+     *
+     * @return This body's restitution value
+     */
+    public double getRestitution() {
+        return restitution;
+    }
+
+    /**
+     * Set this body's restitution value
+     *
+     * @param restitution Given restitution value
+     *
+     * @note For logical physics, this should be a value between 0 (= full energy loss) and 1 (= full energy conservation)
+     */
+    public void setRestitution(double restitution) {
+        this.restitution = restitution;
+    }
+
+    // =================================================================================
+    // Friction coefficient
+    // =================================================================================
+
+    /**
+     * Get this body's friction coefficient
+     *
+     * @return This body's friction coefficient
+     */
+    public double getFrictionCoefficient() {
+        return frictionCoefficient;
+    }
+
+    /**
+     * Set this body's friction coefficient
+     *
+     * @param frictionCoefficient Given friction coefficient
+     */
+    public void setFrictionCoefficient(double frictionCoefficient) {
+        this.frictionCoefficient = frictionCoefficient;
     }
 
     // =================================================================================

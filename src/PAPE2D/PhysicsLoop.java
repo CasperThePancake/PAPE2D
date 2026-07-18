@@ -350,9 +350,6 @@ public class PhysicsLoop extends Canvas implements Runnable {
             b.render(this);
         }
 
-        // WIP REMOVE: for testing, mark origin red
-        setPixel((int) Math.round(WIDTH / 2), (int) Math.round(HEIGHT / 2), argb(255,255,0,0));
-
         // Push the raw pixel data to the native monitor hardware
         Graphics g = bs.getDrawGraphics();
         g.drawImage(image, 0, 0, getWidth(), getHeight(), null);

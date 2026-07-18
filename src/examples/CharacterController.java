@@ -14,12 +14,13 @@ import java.awt.event.KeyEvent;
  */
 void main() {
     // Initiate world and physics loop
-    World world = new World(new SweepAndPrune(), new SAT(), 0.3, 5, 0);
+    World world = new World();
     PhysicsLoop loop = new PhysicsLoop(world, 200);
 
     // Player
     Body player = new Square(new Vector2(0,15),15,1);
     player.addFlag(Flag.FROZEN_ROTATION);
+    player.setRestitution(0);
     world.addBody(player);
 
     // Floors and walls

@@ -1,6 +1,8 @@
 package PAPE2D.constraint;
 
 import PAPE2D.DynamicConstraint;
+import PAPE2D.FrictionCoefficientMethod;
+import PAPE2D.RestitutionMethod;
 import PAPE2D.bodies.Circle;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.Vector2;
@@ -15,11 +17,11 @@ public class ContactConstraint extends DynamicConstraint {
     private FrictionConstraint myFrictionConstraint;
     private double bounceVelocity = 0.0;
     private double beta = 0;
-    private double restitution;
+    private RestitutionMethod restitutionMethod;
 
-    public ContactConstraint(ContactManifold contactManifold, double restitution) {
+    public ContactConstraint(ContactManifold contactManifold, RestitutionMethod restitutionMethod) {
         setContactManifold(contactManifold);
-        this.restitution = restitution;
+        this.restitutionMethod = restitutionMethod;
     }
 
     public ContactManifold getContactManifold() {
@@ -38,16 +40,16 @@ public class ContactConstraint extends DynamicConstraint {
         this.myFrictionConstraint = myFrictionConstraint;
     }
 
-    public static List<ContactConstraint> createConstraints(List<ContactManifold> contactManifolds, double restitution) {
+    public static List<ContactConstraint> createConstraints(List<ContactManifold> contactManifolds, RestitutionMethod restitutionMethod) {
         List<ContactConstraint> outputList = new ArrayList<>();
         for (ContactManifold manifold : contactManifolds) {
-            outputList.add(new ContactConstraint(manifold, restitution));
+            outputList.add(new ContactConstraint(manifold, restitutionMethod));
         }
         return outputList;
     }
 
-    public FrictionConstraint createFrictionConstraint() {
-        return new FrictionConstraint(this, getContactManifold());
+    public FrictionConstraint createFrictionConstraint(FrictionCoefficientMethod frictionCoefficientMethod) {
+        return new FrictionConstraint(this, getContactManifold(), frictionCoefficientMethod.calculateCoefficient(contactManifold.getBody1().getFrictionCoefficient(),contactManifold.getBody2().getFrictionCoefficient()));
     }
 
     @Override
@@ -136,6 +138,8 @@ public class ContactConstraint extends DynamicConstraint {
                 contactManifold.getContactPointRelativeBody2().cross(contactManifold.getBody2().getAngularVelocity()).times(-1)
         );
         double relativeVelocity = v2.minus(v1).dot(normal);
+
+        double restitution = restitutionMethod.calculateRestitution(contactManifold.getBody1().getRestitution(),contactManifold.getBody2().getRestitution());
 
         if (relativeVelocity < -0.5) {
             bounceVelocity = -restitution * relativeVelocity;
