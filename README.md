@@ -31,17 +31,12 @@ Now I want to keep building the library, to make it more accessible and actually
 
 ## 🛠️ Roadmap
 
+### Being worked on
+
+- Welding / concave bodies using a Body-Fixture system (since 26/07/2026)
+
 ### Planned features
-These are features I will definitely add in the future.
+(In order of planned importance)
 
-- [ ] Better air resistance and effect on rotation
-
-### Possible features
-These are features I would like to add, but are more difficult and require more consideration.
-
-- [ ] Visual indicator for spring forces and distance constraints
-- [ ] Sprite rendering
-- [ ] Welds (notoriously tough to implement)
-- [ ] CCD to prevent tunneling (as optional flag)
-- [ ] Support for concave polygons (probably requires welding)
-- [ ] Revolute (Hinge) and Prismatic (Slider) Joints
+- Better air resistance implementation
+- Sprite rendering system
