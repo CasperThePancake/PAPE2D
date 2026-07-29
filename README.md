@@ -33,7 +33,8 @@ Now I want to keep building the library, to make it more accessible and actually
 
 ### Being worked on
 
-- Support for concave polygons using new built-in fixture system
+- Support for concave polygons using new built-in fixture system (since 29/07/2026)
+- Cleaning up the codebase (comments and structure) (since 29/07/2026)
 
 ### Planned features
 (In order of planned importance)
