@@ -38,7 +38,7 @@ void main() {
     world.addBody(myWall2);
 
     // Other obstacles
-    Body slope = new Rectangle(new Vector2(400,25),150,25,new Vector2(),Math.PI/5,0,1);
+    Body slope = new Rectangle(new Vector2(400,25),150,25,1,new Vector2(),Math.PI/5,0);
     slope.addFlag(Flag.FROZEN);
     world.addBody(slope);
 

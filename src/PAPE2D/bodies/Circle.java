@@ -1,6 +1,7 @@
 package PAPE2D.bodies;
 
 import PAPE2D.Body;
+import PAPE2D.Fixture;
 import PAPE2D.PhysicsLoop;
 import PAPE2D.helper.Vector2;
 
@@ -13,7 +14,8 @@ public class Circle extends Body {
     // =================================================================================
     // Attributes
     // =================================================================================
-    private double radius;
+
+    // None...
 
     // =================================================================================
     // Constructors
@@ -28,9 +30,10 @@ public class Circle extends Body {
      * @param angularVelocity Given rotational velocity
      * @param mass Given mass
      */
-    public Circle(double radius, Vector2 position, Vector2 velocity, double angle, double angularVelocity, double mass) {
-        super(position, velocity, angle, angularVelocity, mass, calculateInertiaMoment(mass,radius),calculateOriginVector());
-        this.setRadius(radius);
+    public Circle(Vector2 position, double radius, double mass, Vector2 velocity, double angle, double angularVelocity) {
+        Fixture circleFixture = new PAPE2D.fixtures.Circle(mass,radius);
+
+        super(position, List.of(circleFixture), List.of(new Vector2()), velocity, angle, angularVelocity);
     }
 
     /**
@@ -40,9 +43,8 @@ public class Circle extends Body {
      * @param velocity Given velocity
      * @param mass Given mass
      */
-    public Circle(double radius, Vector2 position, Vector2 velocity, double mass) {
-        super(position, velocity, 0, 0, mass, calculateInertiaMoment(mass,radius),calculateOriginVector());
-        this.setRadius(radius);
+    public Circle(Vector2 position, double radius, double mass, Vector2 velocity) {
+        this(position,radius,mass,velocity,0,0);
     }
 
     /**
@@ -52,75 +54,7 @@ public class Circle extends Body {
      * @param position Given position (corresponds with circle center)
      * @param mass Given mass
      */
-    public Circle(double radius, Vector2 position, double mass) {
-        super(position, new Vector2(), 0, 0, mass, calculateInertiaMoment(mass,radius),calculateOriginVector());
-        this.setRadius(radius);
-    }
-
-    // =================================================================================
-    // Radius
-    // =================================================================================
-    public double getRadius() {
-        return radius;
-    }
-
-    public void setRadius(double radius) {
-        this.radius = radius;
-    }
-
-    // =================================================================================
-    // Body necessities
-    // =================================================================================
-    public static double calculateInertiaMoment(double mass, double radius) {
-        return 0.5 * mass * radius * radius;
-    }
-
-    public static Vector2 calculateOriginVector() {
-        return new Vector2(0,0);
-    }
-
-    @Override
-    public void updateInternally() {
-        // Nothing...
-    }
-
-    @Override
-    public void updateAABB() {
-        setAABBminX(getPosition().getX() - getRadius());
-        setAABBmaxX(getPosition().getX() + getRadius());
-        setAABBminY(getPosition().getY() - getRadius());
-        setAABBmaxY(getPosition().getY() + getRadius());
-    }
-
-    @Override
-    public List<Vector2> getSATAxes(Body other) {
-        // For a circle, the SAT axis to check is the one connecting its center to the other body's closest reference (like closest polygon vertex)
-        return List.of(getPosition().minus(other.getClosestReferenceTo(getPosition())));
-    }
-
-    @Override
-    public Vector2 getClosestReferenceTo(Vector2 position) {
-        return getPosition();
-    }
-
-    @Override
-    public Double[] getProjectionEdges(Vector2 projectionAxis) {
-        Vector2 normalizedProjectionAxis = projectionAxis.normalized();
-        double p = getPosition().dot(normalizedProjectionAxis);
-
-        return new Double[]{p-getRadius(), p+getRadius()};
-    }
-
-    @Override
-    public void render(PhysicsLoop physicsLoop) {
-        // Calculate pixel coordinates
-        double cX = physicsLoop.worldToScreenCoords(getPosition()).getX();
-        double cY = physicsLoop.worldToScreenCoords(getPosition()).getY();
-
-        // Calculate radius properly
-        double xFurther = physicsLoop.worldToScreenCoords(new Vector2(getPosition().getX()+getRadius(),getPosition().getY())).getX();
-        double screenRadius = xFurther - cX;
-
-        physicsLoop.drawCircle(cX,cY,screenRadius);
+    public Circle(Vector2 position, double radius, double mass) {
+        this(position,radius,mass,new Vector2(),0,0);
     }
 }

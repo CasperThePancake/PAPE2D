@@ -19,7 +19,7 @@ void main() {
     double pegDistanceY = 50;
     for (double x = -500; x <= 500; x += pegDistanceX) {
         for (double y = 300; y >= 0; y -= pegDistanceY) {
-            Body newPeg = new Circle(5, new Vector2(x, y), 1);
+            Body newPeg = new Circle(new Vector2(x, y),5, 1);
             newPeg.addFlag(Flag.FROZEN);
             world.addBody(newPeg);
         }
@@ -54,7 +54,7 @@ void main() {
                 Vector2 spawn = new Vector2(0,440);
                 double shootSpeed = 200;
                 Vector2 velocity = cursor.minus(spawn).normalized().times(shootSpeed);
-                Body ball = new Circle(10,spawn,velocity,1);
+                Body ball = new Circle(spawn,10,1,velocity);
                 tickedWorld.addBody(ball);
                 down = true;
             } else if (!tickedPhysicsLoop.isKeyDown(KeyEvent.VK_A) && down) {

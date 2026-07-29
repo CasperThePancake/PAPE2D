@@ -19,8 +19,8 @@ public class Square extends Rectangle {
      * @param angularVelocity Given angular velocity
      * @param mass Given mass
      */
-    public Square(Vector2 position, double width, Vector2 velocity, double angle, double angularVelocity, double mass) {
-        super(position, width, width, velocity, angle, angularVelocity, mass);
+    public Square(Vector2 position, double width, double mass, Vector2 velocity, double angle, double angularVelocity) {
+        super(position, width, width, mass, velocity, angle, angularVelocity);
     }
 
     /**
@@ -31,8 +31,8 @@ public class Square extends Rectangle {
      * @param velocity Given velocity
      * @param mass Given mass
      */
-    public Square(Vector2 position, double width, Vector2 velocity, double mass) {
-        this(position, width, velocity, 0, 0, mass);
+    public Square(Vector2 position, double width, double mass, Vector2 velocity) {
+        this(position, width, mass, velocity, 0, 0);
     }
 
     /**
@@ -43,6 +43,6 @@ public class Square extends Rectangle {
      * @param mass Given mass
      */
     public Square(Vector2 position, double width, double mass) {
-        this(position, width, new Vector2(), 0, 0, mass);
+        this(position, width, mass, new Vector2(), 0, 0);
     }
 }

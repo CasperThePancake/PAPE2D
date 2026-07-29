@@ -1,9 +1,9 @@
 package PAPE2D.narrowphase;
 
-import PAPE2D.Body;
+import PAPE2D.Fixture;
 import PAPE2D.Flag;
-import PAPE2D.bodies.Circle;
-import PAPE2D.bodies.Polygon;
+import PAPE2D.fixtures.Circle;
+import PAPE2D.fixtures.Polygon;
 import PAPE2D.NarrowPhaseCollisionSystem;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.Edge;
@@ -24,11 +24,11 @@ public class SAT extends NarrowPhaseCollisionSystem {
         List<Vector2> SATAxes = potentialCollidingPair.getSATAxes();
         List<Double> overlapAmounts = new ArrayList<>();
 
-        // 2. For each axis, perform the proper projection, check if seperation (=> not colliding, return null), if done they're colliding and continue
+        // 2. For each axis, perform the proper projection, check if separation (=> not colliding, return null), if done they're colliding and continue
         for (Vector2 axis : SATAxes) {
             // Let the Body calculate the outer points of its projection, represented as directed length from (0,0) (dot product between (cos,sin) and outer points)
-            Double[] body1ProjectionEdges = potentialCollidingPair.getBody1().getProjectionEdges(axis); // Assumed (min,max) sorted!
-            Double[] body2ProjectionEdges = potentialCollidingPair.getBody2().getProjectionEdges(axis);
+            Double[] body1ProjectionEdges = potentialCollidingPair.getFixture1().getProjectionEdges(axis); // Assumed (min,max) sorted!
+            Double[] body2ProjectionEdges = potentialCollidingPair.getFixture2().getProjectionEdges(axis);
             if (body1ProjectionEdges[1] < body2ProjectionEdges[0] || body2ProjectionEdges[1] < body1ProjectionEdges[0]) {
                 // No overlap!
                 return new ArrayList<>();
@@ -52,22 +52,22 @@ public class SAT extends NarrowPhaseCollisionSystem {
 
         Vector2 tangent = normal.normal();
 
-        // 4. Determine reference body and incident body (reference body owns the axis that had least overlap)
-        Body referenceBody;
-        Body incidentBody;
+        // 4. Determine reference fixture and incident fixture (reference fixture owns the axis that had least overlap)
+        Fixture referenceFixture;
+        Fixture incidentFixture;
 
         // If the index is less than the number of axes Body 1 provided, Body 1 is the reference
-        if (bestAxisIndex < potentialCollidingPair.getBody1().getSATAxes(potentialCollidingPair.getBody2()).size()) {
-            referenceBody = potentialCollidingPair.getBody1();
-            incidentBody = potentialCollidingPair.getBody2();
+        if (bestAxisIndex < potentialCollidingPair.getFixture1().getSATAxes(potentialCollidingPair.getFixture2()).size()) {
+            referenceFixture = potentialCollidingPair.getFixture1();
+            incidentFixture = potentialCollidingPair.getFixture2();
         } else {
-            referenceBody = potentialCollidingPair.getBody2();
-            incidentBody = potentialCollidingPair.getBody1();
+            referenceFixture = potentialCollidingPair.getFixture2();
+            incidentFixture = potentialCollidingPair.getFixture1();
         }
 
         // Make sure the normal vector points from reference to incident (for later usage)
-        Double[] refProjection = referenceBody.getProjectionEdges(normal);
-        Double[] incProjection = incidentBody.getProjectionEdges(normal);
+        Double[] refProjection = referenceFixture.getProjectionEdges(normal);
+        Double[] incProjection = incidentFixture.getProjectionEdges(normal);
 
         // Calculate the midpoints of these projections
         double refCenterAlongAxis = (refProjection[0] + refProjection[1]) / 2.0;
@@ -83,18 +83,18 @@ public class SAT extends NarrowPhaseCollisionSystem {
         List<Vector2> contactPoints = new ArrayList<>();
         List<Double> penetrationDepths = new ArrayList<>();
 
-        if (referenceBody instanceof Circle && incidentBody instanceof Polygon) { // Reference is circle, incident is polygon: contact point is the closest vertex of polygon to circle center
-            contactPoints.add(incidentBody.getClosestReferenceTo(referenceBody.getPosition()));
-            penetrationDepths.add( ((Circle) referenceBody).getRadius() - referenceBody.getPosition().minus(contactPoints.getLast()).size());
-        } else if (incidentBody instanceof Circle) { // Incident is circle (reference can be both): contact point is point on circle perimeter in normal direction, inside other body
+        if (referenceFixture instanceof Circle && incidentFixture instanceof Polygon) { // Reference is circle, incident is polygon: contact point is the closest vertex of polygon to circle center
+            contactPoints.add(incidentFixture.getClosestReferenceTo(referenceFixture.getPosition()));
+            penetrationDepths.add( ((Circle) referenceFixture).getRadius() - referenceFixture.getPosition().minus(contactPoints.getLast()).size());
+        } else if (incidentFixture instanceof Circle) { // Incident is circle (reference can be both): contact point is point on circle perimeter in normal direction, inside other body
             // Type casting my beloved?
-            contactPoints.add(incidentBody.getPosition().minus(normal.times(((Circle) incidentBody).getRadius())));
+            contactPoints.add(incidentFixture.getPosition().minus(normal.times(((Circle) incidentFixture).getRadius())));
             penetrationDepths.add(minOverlap); // Penetration depth is obvious here
-        } else if (referenceBody instanceof Polygon && incidentBody instanceof Polygon) {
+        } else if (referenceFixture instanceof Polygon && incidentFixture instanceof Polygon) {
             // 1. Find the edges facing each other
-            Edge referenceEdge = ((Polygon) referenceBody).findBestEdge(normal);
+            Edge referenceEdge = ((Polygon) referenceFixture).findBestEdge(normal);
             // Incident edge faces the opposite direction of the reference outward normal
-            Edge incidentEdge = ((Polygon) incidentBody).findBestEdge(normal.times(-1));
+            Edge incidentEdge = ((Polygon) incidentFixture).findBestEdge(normal.times(-1));
 
             Vector2 reference1 = referenceEdge.getV1();
             Vector2 reference2 = referenceEdge.getV2();
@@ -136,7 +136,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
                 penetrationDepths.add(-separation2);
             }
 
-            if (incidentBody.hasFlag(Flag.DEBUG) || referenceBody.hasFlag(Flag.DEBUG)) {
+            if (incidentFixture.getParentBody().hasFlag(Flag.DEBUG) || referenceFixture.getParentBody().hasFlag(Flag.DEBUG)) {
                 IO.println("Amount of contact points: "+contactPoints.size());
             }
         }
@@ -145,7 +145,7 @@ public class SAT extends NarrowPhaseCollisionSystem {
         List<ContactManifold> contactManifolds = new ArrayList<>();
 
         for (int i = 0; i < contactPoints.size(); i++) {
-            contactManifolds.add(new ContactManifold(contactPoints.get(i), penetrationDepths.get(i), referenceBody, incidentBody, normal, tangent));
+            contactManifolds.add(new ContactManifold(contactPoints.get(i), penetrationDepths.get(i), referenceFixture.getParentBody(), incidentFixture.getParentBody(), normal, tangent));
         } // Normal points reference > incident, so as contacts enforce n * (v2-v1) this should be from body 1 to body 2, meaning reference=body1, incident=body2
 
         return contactManifolds;

@@ -33,7 +33,7 @@ Now I want to keep building the library, to make it more accessible and actually
 
 ### Being worked on
 
-- Welding / concave bodies using a Body-Fixture system (since 26/07/2026)
+- Support for concave polygons using new built-in fixture system
 
 ### Planned features
 (In order of planned importance)

@@ -149,6 +149,7 @@ public class World {
             } else if (b.hasFlag(Flag.FROZEN_ROTATION)) {
                 b.setPseudoAngularVelocity(0);
             }
+
             b.setPosition(b.getPosition().plus(b.getPseudoVelocity()));
             b.setAngle(b.getAngle() + b.getPseudoAngularVelocity());
         }

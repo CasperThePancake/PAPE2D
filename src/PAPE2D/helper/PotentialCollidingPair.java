@@ -1,6 +1,7 @@
 package PAPE2D.helper;
 
 import PAPE2D.Body;
+import PAPE2D.Fixture;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,47 +10,47 @@ public class PotentialCollidingPair {
     // =================================================================================
     // Attributes
     // =================================================================================
-    private Body body1;
-    private Body body2;
+    private Fixture fixture1;
+    private Fixture fixture2;
 
     // =================================================================================
     // Bodies
     // =================================================================================
 
     /**
-     * Get the first body of this potential colliding pair
+     * Get the first fixture of this potential colliding pair
      *
-     * @return First body
+     * @return First fixture
      */
-    public Body getBody1() {
-        return body1;
+    public Fixture getFixture1() {
+        return fixture1;
     }
 
     /**
-     * Get the second body of this potential colliding pair
+     * Get the second fixture of this potential colliding pair
      *
-     * @return Second body
+     * @return Second fixture
      */
-    public Body getBody2() {
-        return body2;
+    public Fixture getFixture2() {
+        return fixture2;
     }
 
     /**
-     * Set the first body of this potential colliding pair
+     * Set the first fixture of this potential colliding pair
      *
-     * @param body1 Given first body
+     * @param fixture1 Given first fixture
      */
-    private void setBody1(Body body1) {
-        this.body1 = body1;
+    private void setFixture1(Fixture fixture1) {
+        this.fixture1 = fixture1;
     }
 
     /**
-     * Set the second body of this potential colliding pair
+     * Set the second fixture of this potential colliding pair
      *
-     * @param body2 Given second body
+     * @param fixture2 Given second fixture
      */
-    private void setBody2(Body body2) {
-        this.body2 = body2;
+    private void setFixture2(Fixture fixture2) {
+        this.fixture2 = fixture2;
     }
 
     // =================================================================================
@@ -57,14 +58,14 @@ public class PotentialCollidingPair {
     // =================================================================================
 
     /**
-     * Create a new potential colliding pair with given bodies
+     * Create a new potential colliding pair with given fixtures
      *
-     * @param body1 Given first body
-     * @param body2 Given second body
+     * @param fixture1 Given first fixture
+     * @param fixture2 Given second fixture
      */
-    public PotentialCollidingPair(Body body1, Body body2) {
-        this.setBody1(body1);
-        this.setBody2(body2);
+    public PotentialCollidingPair(Fixture fixture1, Fixture fixture2) {
+        this.setFixture1(fixture1);
+        this.setFixture2(fixture2);
     }
 
     // =================================================================================
@@ -74,11 +75,11 @@ public class PotentialCollidingPair {
     /**
      * Get the SAT axes associated with this potential colliding pair
      *
-     * @return List containing every SAT axis for both bodies
+     * @return List containing every SAT axis for both fixtures
      */
     public List<Vector2> getSATAxes() {
-        List<Vector2> output = new ArrayList<>(getBody1().getSATAxes(getBody2()));
-        output.addAll(getBody2().getSATAxes(getBody1()));
+        List<Vector2> output = new ArrayList<>(getFixture1().getSATAxes(getFixture2()));
+        output.addAll(getFixture2().getSATAxes(getFixture1()));
         return output;
     }
 }

@@ -26,8 +26,8 @@ void main() {
 
     Body topHinge = new Square(new Vector2(0,0),10,1);
     topHinge.addFlag(Flag.FROZEN);
-    Body mass1 = new Circle(5,new Vector2(5,-5-l1),new Vector2(50,0),m1);
-    Body mass2 = new Circle(10,new Vector2(5,-5-l1-l2),new Vector2(350,0),m2);
+    Body mass1 = new Circle(new Vector2(5,-5-l1),5,m1,new Vector2(50,0));
+    Body mass2 = new Circle(new Vector2(5,-5-l1-l2),10,m2,new Vector2(350,0));
 
     world.addBody(topHinge);
     world.addBody(mass1);

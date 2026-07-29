@@ -2,6 +2,7 @@ package PAPE2D;
 
 import PAPE2D.helper.Vector2;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,13 +12,15 @@ import java.util.Set;
  *
  * @note All bodies are considered fully homogeneous in terms of mass
  *
+ * @note A body itself carries no shape or mass information, this is defined by its composition of Fixtures and their relative positions (determines total mass, inertia, COM, etc.)
+ *
  * @note When creating a Body, the user specifies some position (x,y) which could i.e. represent the top-left rectangle corner; internally we use that to calculate where the COM is and use that as the anchor, so its position is stored as the Body's Position.
  *
  * @note For clarity: USER ORIGIN = place in body the user gives position coordinates for (like top-left of rectangle), REAL ORIGIN = actual place in body we store position of, so the COM
  *
  * @note When the user passes a user origin, we use a pre-calculated originVector and the rotation to properly determine where the real origin should be, such that their expectation is satisfied
  */
-public abstract class Body {
+public class Body {
     // =================================================================================
     // Attributes
     // =================================================================================
@@ -36,41 +39,101 @@ public abstract class Body {
     private double restitution = DEFAULT_RESTITUTION;
     public static double DEFAULT_FRICTION_COEFFICIENT = 1;
     private double frictionCoefficient = DEFAULT_FRICTION_COEFFICIENT;
+    private List<Fixture> fixtures = new ArrayList<>();
 
     // =================================================================================
     // Constructors
     // =================================================================================
 
     /**
-     * Create a new body with given position, velocity, angle, angular velocity, mass, inertia moment, and origin vector
+     * Create a new body with given position, velocity, angle, and angular velocity
+     *
      * @param position Given position
+     * @param fixtures List of fixtures composing this body
+     * @param fixtureOrigins List of vectors pointing from given body position to each equal-index fixture's origin point (origin meaning depends on type of fixture)
      * @param velocity Given velocity
      * @param angle Given angle
      * @param angularVelocity Given angular velocity
-     * @param mass Given mass
-     * @param inertiaMoment Given inertia moment
-     * @param originVector Given origin vector
+     *
+     * @throws IllegalArgumentException If given list of fixtures is empty
      */
-    public Body(Vector2 position, Vector2 velocity, double angle, double angularVelocity, double mass, double inertiaMoment, Vector2 originVector) {
-        this.setOriginVector(originVector);
+    public Body(Vector2 position, List<Fixture> fixtures, List<Vector2> fixtureOrigins, Vector2 velocity, double angle, double angularVelocity) throws IllegalArgumentException {
+        // General things
         this.setAngle(angle);
         this.setAngularVelocity(angularVelocity);
-        this.setPosition(position);
         this.setVelocity(velocity);
-        this.setMass(mass);
-        this.setInertiaMoment(inertiaMoment);
+
+        // Fixture composition (everything is calculated in an unrotated state!)
+        if (fixtures.isEmpty()) {
+            throw new IllegalArgumentException("Body must be composed of at least one fixture.");
+        }
+
+        this.fixtures = fixtures;
+
+        // Determine total mass
+        double totalMass = 0;
+
+        for (Fixture f : fixtures) {
+            totalMass += f.getMass();
+        }
+
+        this.setMass(totalMass);
+
+        // Determine total COM
+        Vector2 totalCOM = new Vector2();
+
+        for (int i = 0; i < fixtures.size(); i++) {
+            Fixture f = fixtures.get(i);
+            Vector2 fOrigin = fixtureOrigins.get(i);
+            totalCOM = totalCOM.plus(f.getCOM(position.plus(fOrigin)).times(f.getMass()));
+        }
+        this.setPosition(totalCOM.times(1/totalMass));
+
+        // Update fixtures' references
+        for (int i = 0; i < fixtures.size(); i++) {
+            Fixture f = fixtures.get(i);
+            Vector2 fOrigin = fixtureOrigins.get(i);
+            f.setParentCOMToThisCOM(f.getCOM(position.plus(fOrigin)).times(f.getMass()).minus(getPosition()));
+            f.setParentBody(this);
+        }
+
+        // Determine total inertia moment
+        double totalInertia = 0;
+
+        for (Fixture f : fixtures) {
+            totalInertia += f.getInertiaMoment() + f.getMass() * (f.getParentCOMToThisCOM().size()) * (f.getParentCOMToThisCOM().size()); // Parallel axis theorem
+        }
+
+        setInertiaMoment(totalInertia);
+
+        // Determine and set origin vector (FROM user origin defined via this constructor/shapes TO actual position, so center of mass)
+        Vector2 originVector = getPosition().minus(position);
+
+        // Make sure everything is instantly updated (mainly important for polygons)
+        updateInternally();
     }
 
     /**
-     * Create a new body with given position, velocity, inertia moment, origin vector, and no angle
+     * Create a new body with given position, velocity, and no angle
+     *
      * @param position Given position
+     * @param fixtures List of fixtures composing this body
+     * @param fixtureOrigins List of vectors pointing from given body position to each equal-index fixture's origin point (origin meaning depends on type of fixture)
      * @param velocity Given velocity
-     * @param mass Given mass
-     * @param inertiaMoment Given inertia moment
-     * @param originVector Given origin vector
      */
-    public Body(Vector2 position, Vector2 velocity, double mass, double inertiaMoment, Vector2 originVector) {
-        this(position,velocity,0,0,mass,inertiaMoment,originVector);
+    public Body(Vector2 position, List<Fixture> fixtures, List<Vector2> fixtureOrigins, Vector2 velocity) {
+        this(position,fixtures,fixtureOrigins,velocity,0,0);
+    }
+
+    /**
+     * Create a new body with given position, no velocity, no angle
+     *
+     * @param position Given position
+     * @param fixtures List of fixtures composing this body
+     * @param fixtureOrigins List of vectors pointing from given body position to each equal-index fixture's origin point (origin meaning depends on type of fixture)
+     */
+    public Body(Vector2 position, List<Fixture> fixtures, List<Vector2> fixtureOrigins) {
+        this(position,fixtures,fixtureOrigins,new Vector2(), 0, 0);
     }
 
     // =================================================================================
@@ -266,7 +329,11 @@ public abstract class Body {
     /**
      * Update the internals of the body
      */
-    public abstract void updateInternally();
+    public void updateInternally() {
+        for (Fixture f : fixtures) {
+            f.updateInternally();
+        }
+    }
 
     /**
      * Given a point on the body, returns the relative vector pointing from object COM/anchor to given point
@@ -369,7 +436,57 @@ public abstract class Body {
         this.AABBmaxY = AABBmaxY;
     }
 
-    public abstract void updateAABB();
+    public void updateAABB() {
+        // Let the fixtures update theirs first
+        for (Fixture f : fixtures) {
+            f.updateAABB();
+        }
+
+        // Body AABB is most stretched out combination of underlying fixture AABBs
+        // AABBminX
+        double AABBminX = Double.POSITIVE_INFINITY;
+
+        for (Fixture f : fixtures) {
+            if (f.getAABBminX() < AABBminX) {
+                AABBminX = f.getAABBminX();
+            }
+        }
+
+        setAABBminX(AABBminX);
+
+        // AABBmaxX
+        double AABBmaxX = Double.NEGATIVE_INFINITY;
+
+        for (Fixture f : fixtures) {
+            if (f.getAABBmaxX() > AABBmaxX) {
+                AABBmaxX = f.getAABBmaxX();
+            }
+        }
+
+        setAABBmaxX(AABBmaxX);
+
+        // AABBminY
+        double AABBminY = Double.POSITIVE_INFINITY;
+
+        for (Fixture f : fixtures) {
+            if (f.getAABBminY() < AABBminY) {
+                AABBminY = f.getAABBminY();
+            }
+        }
+
+        setAABBminY(AABBminY);
+
+        // AABBmaxY
+        double AABBmaxY = Double.NEGATIVE_INFINITY;
+
+        for (Fixture f : fixtures) {
+            if (f.getAABBmaxY() > AABBmaxY) {
+                AABBmaxY = f.getAABBmaxY();
+            }
+        }
+
+        setAABBmaxY(AABBmaxY);
+    }
 
     public double getEdgeValue(Axis axis, Bound bound) {
         if (axis == Axis.X) {
@@ -433,18 +550,13 @@ public abstract class Body {
     }
 
     // =================================================================================
-    // SAT stuff
-    // =================================================================================
-    public abstract List<Vector2> getSATAxes(Body other);
-
-    public abstract Vector2 getClosestReferenceTo(Vector2 position);
-
-    public abstract Double[] getProjectionEdges(Vector2 projectionAxis);
-
-    // =================================================================================
     // Rendering
     // =================================================================================
-    public abstract void render(PhysicsLoop physicsLoop);
+    public void render(PhysicsLoop physicsLoop) {
+        for (Fixture f : fixtures) {
+            f.render(physicsLoop);
+        }
+    }
 
     // =================================================================================
     // Flags
@@ -477,5 +589,18 @@ public abstract class Body {
      */
     public void removeFlag(Flag flag) {
         flags.remove(flag);
+    }
+
+    // =================================================================================
+    // Fixtures
+    // =================================================================================
+
+    /**
+     * Get the list of all fixtures composing this body
+     *
+     * @return List of all fixtures composing this body
+     */
+    public List<Fixture> getFixtures() {
+        return fixtures;
     }
 }

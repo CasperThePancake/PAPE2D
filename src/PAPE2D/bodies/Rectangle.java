@@ -23,7 +23,7 @@ public class Rectangle extends Polygon {
      * @param angularVelocity Given angular velocity
      * @param mass Given mass
      */
-    public Rectangle(Vector2 position, double width, double height, Vector2 velocity, double angle, double angularVelocity, double mass) {
+    public Rectangle(Vector2 position, double width, double height, double mass, Vector2 velocity, double angle, double angularVelocity) {
         // Construct rectangle vertices
         List<Vector2> vertices = new ArrayList<>();
         vertices.add(position);
@@ -31,7 +31,7 @@ public class Rectangle extends Polygon {
         vertices.add(position.plus(new Vector2(width,-height)));
         vertices.add(position.plus(new Vector2(0,-height)));
 
-        super(vertices, velocity, angle, angularVelocity, mass);
+        super(vertices, mass, velocity, angle, angularVelocity);
     }
 
     /**
@@ -43,8 +43,8 @@ public class Rectangle extends Polygon {
      * @param velocity Given velocity
      * @param mass Given mass
      */
-    public Rectangle(Vector2 position, double width, double height, Vector2 velocity, double mass) {
-        this(position,width,height,velocity,0,0,mass);
+    public Rectangle(Vector2 position, double width, double height, double mass, Vector2 velocity) {
+        this(position,width,height,mass,velocity,0,0);
     }
 
     /**
@@ -56,6 +56,6 @@ public class Rectangle extends Polygon {
      * @param mass Given mass
      */
     public Rectangle(Vector2 position, double width, double height, double mass) {
-        this(position,width,height,new Vector2(),0,0,mass);
+        this(position,width,height,mass,new Vector2(),0,0);
     }
 }
