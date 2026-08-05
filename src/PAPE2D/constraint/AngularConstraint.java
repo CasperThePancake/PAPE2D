@@ -1,13 +1,14 @@
 package PAPE2D.constraint;
 
 import PAPE2D.Body;
+import PAPE2D.ScalarStaticConstraint;
 import PAPE2D.StaticConstraint;
 import PAPE2D.World;
 
 /**
  * Constraint that enforces two bodies have an equal rotational velocity and remain at the same angular difference
  */
-public class AngularConstraint extends StaticConstraint {
+public class AngularConstraint extends ScalarStaticConstraint {
     private Body body1;
     private Body body2;
     private double angleDifference;

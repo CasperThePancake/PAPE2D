@@ -1,8 +1,6 @@
 package PAPE2D.constraint;
 
-import PAPE2D.DynamicConstraint;
-import PAPE2D.FrictionCoefficientMethod;
-import PAPE2D.RestitutionMethod;
+import PAPE2D.*;
 import PAPE2D.bodies.Circle;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.Vector2;
@@ -12,7 +10,7 @@ import java.util.List;
 /**
  * Constraint that forces two possibly colliding bodies to stop penetrating (and bounce back)
  */
-public class ContactConstraint extends DynamicConstraint {
+public class ContactConstraint extends ScalarDynamicConstraint {
     private ContactManifold contactManifold;
     private FrictionConstraint myFrictionConstraint;
     private double bounceVelocity = 0.0;
@@ -146,6 +144,11 @@ public class ContactConstraint extends DynamicConstraint {
         } else {
             bounceVelocity = 0.0;
         }
+    }
+
+    @Override
+    public void resetConstraint(World world) {
+        // Nothing...
     }
 
     @Override

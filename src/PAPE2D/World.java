@@ -43,7 +43,7 @@ public class World {
      * Create a world with recommended settings
      */
     public World() {
-        this(new SweepAndPrune(), new SAT(), 0.3, 5, RestitutionMethod.PRODUCT,FrictionCoefficientMethod.MEAN_GEOMETRIC);
+        this(new SweepAndPrune(), new SAT(), 0.3, 10, RestitutionMethod.PRODUCT,FrictionCoefficientMethod.MEAN_GEOMETRIC);
     }
 
     /**

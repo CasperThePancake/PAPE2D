@@ -34,11 +34,13 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Being worked on
 
 - Cleaning up the codebase (comments and structure) (since 29/07/2026)
-- Revolute pin joints (new constraint) (since 30/07/2026)
+- Better debug features (since 05/08/2026)
+- Option to disable body rendering (since 05/08/2026)
+- Ability to add multiple bodies to a world as one-liner (since 05/08/2026)
 
 ### Planned features
 (In order of planned importance)
 
 - Better air resistance implementation
-- Sprite rendering system
 - Support for concave polygons using new built-in fixture system
+- Sprite rendering system

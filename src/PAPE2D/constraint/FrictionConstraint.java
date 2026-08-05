@@ -1,13 +1,15 @@
 package PAPE2D.constraint;
 
 import PAPE2D.DynamicConstraint;
+import PAPE2D.ScalarDynamicConstraint;
+import PAPE2D.World;
 import PAPE2D.helper.ContactManifold;
 import PAPE2D.helper.Vector2;
 
 /**
  * Constraint that reduces tangential motion between two bodies up to a maximum
  */
-public class FrictionConstraint extends DynamicConstraint {
+public class FrictionConstraint extends ScalarDynamicConstraint {
     private ContactConstraint myContactConstraint;
     private ContactManifold contactManifold;
     private double frictionCoefficient;
@@ -89,5 +91,11 @@ public class FrictionConstraint extends DynamicConstraint {
     // Friction constraints have no concept of physical separation, leave these blank
     @Override public double calculatePseudoDeltaJ() { return 0; }
     @Override public void capPseudoJ() {}
+
+    @Override
+    public void resetConstraint(World world) {
+        // Nothing...
+    }
+
     @Override public void updatePseudoVelocity(double realPseudoDeltaJ) {}
 }
