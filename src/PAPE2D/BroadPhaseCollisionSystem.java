@@ -32,7 +32,7 @@ public abstract class BroadPhaseCollisionSystem {
 
     protected abstract void removeBody(Body b);
 
-    public abstract void update();
+    protected abstract void update();
 
-    public abstract List<PotentialCollidingPair> getPotentialCollidingPairs();
+    protected abstract List<PotentialCollidingPair> getPotentialCollidingPairs();
 }

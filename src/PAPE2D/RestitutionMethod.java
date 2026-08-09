@@ -20,6 +20,14 @@ public enum RestitutionMethod {
     RestitutionMethod() {
     }
 
+    /**
+     * Calculate the combined restitution from two given restitutions, using the selected method
+     *
+     * @param r1 Given first restitution
+     * @param r2 Given second restitution
+     *
+     * @return Combined restitution
+     */
     public double calculateRestitution(double r1, double r2) {
         if (this.equals(PRODUCT)) {
             return r1 * r2;

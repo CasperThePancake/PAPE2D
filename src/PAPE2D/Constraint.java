@@ -13,11 +13,11 @@ public abstract class Constraint {
     // =================================================================================
     // Constraint solving
     // =================================================================================
-    public abstract void initConstraint(double beta, double dt);
+    protected abstract void initConstraint(double beta, double dt);
 
-    public abstract void updateConstraint();
+    protected abstract void updateConstraint();
 
-    public abstract void updatePseudoConstraint();
+    protected abstract void updatePseudoConstraint();
 
-    public abstract void resetConstraint(World linkedWorld);
+    protected abstract void resetConstraint(World linkedWorld);
 }

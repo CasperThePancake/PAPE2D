@@ -2,9 +2,7 @@ package PAPE2D;
 
 import PAPE2D.helper.Vector2;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Abstract fixture class for shapes that make up rigid bodies
@@ -146,6 +144,7 @@ public abstract class Fixture {
     // =================================================================================
     // AABB & edges
     // =================================================================================
+
     protected double getAABBminX() {
         return AABBminX;
     }
@@ -178,8 +177,17 @@ public abstract class Fixture {
         this.AABBmaxY = AABBmaxY;
     }
 
-    public abstract void updateAABB();
+    protected abstract void updateAABB();
 
+    /**
+     * Get a specified AABB edge for this body
+     *
+     * @param axis The axis which the requested edge falls on (i.e. X for left edge)
+     * @param bound The boundary type of the requested edge
+     *
+     * @return The requested edge value
+     */
+    @Internal
     public double getEdgeValue(Axis axis, Bound bound) {
         if (axis == Axis.X) {
             return bound == Bound.MIN ? AABBminX : AABBmaxX;
@@ -188,6 +196,14 @@ public abstract class Fixture {
         }
     }
 
+    /**
+     * Checks if this body's AABB overlaps with a given other body's AABB
+     *
+     * @param other Given other body
+     *
+     * @return True if AABBs have overlap; false otherwise
+     */
+    @Internal
     public boolean AABBOverlaps(Fixture other) {
         return (this.getEdgeValue(Axis.X,Bound.MIN) <= other.getEdgeValue(Axis.X,Bound.MAX))
                 && (this.getEdgeValue(Axis.X,Bound.MAX) >= other.getEdgeValue(Axis.X,Bound.MIN))
@@ -195,19 +211,44 @@ public abstract class Fixture {
                 && (this.getEdgeValue(Axis.Y,Bound.MAX) >= other.getEdgeValue(Axis.Y,Bound.MIN));
     }
 
-    public abstract void updateInternally();
+    protected abstract void updateInternally();
 
     // =================================================================================
     // SAT stuff
     // =================================================================================
+
+    /**
+     * Get the list of SAT axes to check for this fixture, given the other candidate colliding fixture
+     *
+     * @param other Other fixture
+     *
+     * @return List of SAT axes to check for this fixture
+     */
+    @Internal
     public abstract List<Vector2> getSATAxes(Fixture other);
 
+    /**
+     * Get the closest SAT reference point for this body to a given position
+     *
+     * @param position Given position
+     *
+     * @return Closest SAT reference point
+     */
+    @Internal
     public abstract Vector2 getClosestReferenceTo(Vector2 position);
 
+    /**
+     * Find the edge point values of this fixture's projection on a given axis
+     *
+     * @param projectionAxis Given vector defining the projection axis
+     *
+     * @return Edge point values of this fixture's projection
+     */
+    @Internal
     public abstract Double[] getProjectionEdges(Vector2 projectionAxis);
 
     // =================================================================================
     // Rendering
     // =================================================================================
-    public abstract void render(PhysicsLoop physicsLoop);
+    protected abstract void render(PhysicsLoop physicsLoop);
 }

@@ -1,8 +1,10 @@
 import PAPE2D.*;
 import PAPE2D.bodies.Circle;
 import PAPE2D.bodies.Rectangle;
+import PAPE2D.broadphase.SweepAndPrune;
 import PAPE2D.force.Gravity;
 import PAPE2D.helper.Vector2;
+import PAPE2D.narrowphase.SAT;
 import PAPE2D.ticklisteners.CameraMovement;
 import java.awt.event.KeyEvent;
 
@@ -11,7 +13,7 @@ import java.awt.event.KeyEvent;
  */
 void main() {
     // Initiate world and physics loop
-    World world = new World();
+    World world = new World(new SweepAndPrune(), new SAT(), 0.3, 10, RestitutionMethod.MAX,FrictionCoefficientMethod.MEAN_GEOMETRIC);
     PhysicsLoop loop = new PhysicsLoop(world, 200);
 
     // Pegs
@@ -55,6 +57,7 @@ void main() {
                 double shootSpeed = 200;
                 Vector2 velocity = cursor.minus(spawn).normalized().times(shootSpeed);
                 Body ball = new Circle(spawn,10,1,velocity);
+                ball.setRestitution(1.0);
                 tickedWorld.addBody(ball);
                 down = true;
             } else if (!tickedPhysicsLoop.isKeyDown(KeyEvent.VK_A) && down) {

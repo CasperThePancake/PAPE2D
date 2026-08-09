@@ -21,19 +21,19 @@ public class World {
     // =================================================================================
     // Attributes
     // =================================================================================
-    private List<Body> bodies = new ArrayList<>();
-    private List<StaticConstraint> staticConstraints = new ArrayList<>();
+    private final List<Body> bodies = new ArrayList<>();
+    private final List<StaticConstraint> staticConstraints = new ArrayList<>();
     private BroadPhaseCollisionSystem broadPhase;
     private NarrowPhaseCollisionSystem narrowPhase;
-    private List<UniversalForce> universalForces = new ArrayList<>();
-    private List<LocalForce> localForces = new ArrayList<>();
-    private List<TickListener> preUpdateListeners = new ArrayList<>();
-    private List<TickListener> postUpdateListeners = new ArrayList<>();
-    private double beta;
-    private double detail;
-    private Set<CollisionExclusion> collisionExclusions = new HashSet<>();
-    private RestitutionMethod restitutionMethod;
-    private FrictionCoefficientMethod frictionCoefficientMethod;
+    private final List<UniversalForce> universalForces = new ArrayList<>();
+    private final List<LocalForce> localForces = new ArrayList<>();
+    private final List<TickListener> preUpdateListeners = new ArrayList<>();
+    private final List<TickListener> postUpdateListeners = new ArrayList<>();
+    private final double beta;
+    private final double detail;
+    private final Set<CollisionExclusion> collisionExclusions = new HashSet<>();
+    private final RestitutionMethod restitutionMethod;
+    private final FrictionCoefficientMethod frictionCoefficientMethod;
 
     // =================================================================================
     // Constructors
@@ -75,6 +75,7 @@ public class World {
      * Perform a single time-step dt for this world
      *
      * @param dt Length of time-step in seconds
+     * @param linkedLoop Physics loop linked to this step call
      */
     public void step(double dt, PhysicsLoop linkedLoop) {
         // Pre-update ticking
@@ -173,9 +174,6 @@ public class World {
         for (Body b : bodies) {
             b.updateInternally();
             b.updateAABB();
-            if (b.hasFlag(Flag.DEBUG)) {
-                IO.println("pos: "+b.getPosition());
-            }
         }
 
         // Update the broad phase system for next step
@@ -196,13 +194,24 @@ public class World {
      *
      * @param body Given body
      */
-    public void addBody(Body body) {
+    private void addBody(Body body) {
         this.bodies.add(body);
 
         // Update associations with new object
         broadPhase.addBody(body);
         for (UniversalForce u : universalForces) {
             u.addBody(body);
+        }
+    }
+
+    /**
+     * Add one or more bodies to the world
+     *
+     * @param bodies One or more bodies to add to the world
+     */
+    public void addBody(Body... bodies) {
+        for (Body body : bodies) {
+            addBody(body);
         }
     }
 

@@ -28,6 +28,14 @@ public enum FrictionCoefficientMethod {
     FrictionCoefficientMethod() {
     }
 
+    /**
+     * Calculate the combined friction coefficient from two given coefficients, using the selected method
+     *
+     * @param f1 Given first friction coefficient
+     * @param f2 Given second friction coefficient
+     *
+     * @return Combined friction coefficient
+     */
     public double calculateCoefficient(double f1, double f2) {
         if (this.equals(PRODUCT)) {
             return f1 * f2;

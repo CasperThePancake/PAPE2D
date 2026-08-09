@@ -2,6 +2,7 @@ import PAPE2D.Body;
 import PAPE2D.Flag;
 import PAPE2D.PhysicsLoop;
 import PAPE2D.World;
+import PAPE2D.bodies.Circle;
 import PAPE2D.bodies.Rectangle;
 import PAPE2D.bodies.Square;
 import PAPE2D.constraint.AngularConstraint;
@@ -21,26 +22,26 @@ public class Main {
     public static void main(String[] args) {
         // Initiate world and physics loop
         World world = new World();
-        PhysicsLoop loop = new PhysicsLoop(world, 200);
+        PhysicsLoop loop = new PhysicsLoop(world, 240);
 
-        // Not a point-mass double pendulum, but full rods with mass!
-        Body anchor = new Square(new Vector2(0,0),10,1);
-        Body rod1 = new Rectangle(new Vector2(0,0),10,100,1, new Vector2(200,0),3.1,0);
-        Body rod2 = new Rectangle(new Vector2(0,-90),10,100,1, new Vector2(-60,0),1.5,0);
+        // N balls simulation (stress test)
+        int N = 900;
 
-        // Disable collisions between the rods
-        world.addCollisionExclusion(new CollisionExclusion(anchor,rod1));
-        world.addCollisionExclusion(new CollisionExclusion(rod1,rod2));
-        world.addCollisionExclusion(new CollisionExclusion(anchor,rod2));
-        anchor.addFlag(Flag.FROZEN);
+        for (int i = 0; i < N; i++) {
+            Body myBall = new Circle(new Vector2((double) i /N * 40, (double) i /N * 45),10,1);
+            world.addBody(myBall);
+        }
 
-        // Rods are connected by revolute joints
-        world.addStaticConstraint(new RevoluteJointConstraint(anchor,rod1,new Vector2(0,0),new Vector2(0,45)));
-        world.addStaticConstraint(new RevoluteJointConstraint(rod1,rod2,new Vector2(0,-45), new Vector2(0,45)));
+        // Walls
+        Body floor = new Rectangle(new Vector2(-200,-200),400,50,1);
+        Body wallLeft = new Rectangle(new Vector2(-200,2000),50,2200,1);
+        Body wallRight = new Rectangle(new Vector2(150,2000),50,2200,1);
 
-        world.addBody(anchor);
-        world.addBody(rod1);
-        world.addBody(rod2);
+        floor.addFlag(Flag.FROZEN);
+        wallLeft.addFlag(Flag.FROZEN);
+        wallRight.addFlag(Flag.FROZEN);
+
+        world.addBody(floor,wallLeft,wallRight);
 
         world.addUniversalForce(new Gravity(400));
 

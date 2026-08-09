@@ -10,9 +10,11 @@ import java.awt.event.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.util.List;
 
 /**
  * Physics loop class linked to a World that runs, simulates, and renders its contents in a thread
@@ -25,6 +27,14 @@ public class PhysicsLoop extends Canvas implements Runnable {
     private static final int HEIGHT = 600;
 
     private double fpsPrintTimer = 0;
+    private double currentFps = 0;
+    private final List<Double> cacheFPS = new ArrayList<>();
+    private final static int cacheFPSDistance = 60;
+
+    private double consoleRefreshTimer = 0;
+    private boolean consoleFirstDraw = true;
+
+    private static final String ESC = "\u001B";
 
     private final boolean[] keys = new boolean[256];
     private int mouseWheelDelta = 0;
@@ -32,14 +42,12 @@ public class PhysicsLoop extends Canvas implements Runnable {
     private final World world;
     private final double targetDt;
 
-    private Thread thread;
     private boolean running = false;
 
     // Direct pixel buffer
     private final BufferedImage image;
     private final int[] pixels;
 
-    private long lastTime = 0;
     private double accumulator = 0.0;
 
     private double camX = 0;
@@ -49,6 +57,13 @@ public class PhysicsLoop extends Canvas implements Runnable {
     // =================================================================================
     // Constructors & initialization
     // =================================================================================
+
+    /**
+     * Create a new physics loop, simulating the given world at a given target FPS
+     *
+     * @param world Given world to simulate
+     * @param targetFps Given target FPS
+     */
     public PhysicsLoop(World world, int targetFps) {
         this.world = world;
         this.targetDt = 1.0 / targetFps;
@@ -273,7 +288,7 @@ public class PhysicsLoop extends Canvas implements Runnable {
     public synchronized void start() {
         if (running) return;
         running = true;
-        thread = new Thread(this, "PhysicsLoopThread");
+        Thread thread = new Thread(this, "PhysicsLoopThread");
         thread.start();
     }
 
@@ -297,18 +312,24 @@ public class PhysicsLoop extends Canvas implements Runnable {
     // =================================================================================
     @Override
     public void run() {
-        lastTime = System.nanoTime();
+        long lastTime = System.nanoTime();
+
+        int frameCount = 0; // actual renders in this window
 
         while (running) {
             long now = System.nanoTime();
             double elapsed = (now - lastTime) / 1_000_000_000.0;
-            // "FPS" display
-            fpsPrintTimer += elapsed;
-            if (fpsPrintTimer >= 1.0) {
-                IO.println("Thread (run) FPS: " + (int)(1/elapsed));
-                fpsPrintTimer = 0;
-            }
             lastTime = now;
+
+            // FPS calculation window
+            fpsPrintTimer += elapsed;
+
+            // Console screen
+            consoleRefreshTimer += elapsed;
+            if (consoleRefreshTimer >= 0.2) {
+                printConsoleBox();
+                consoleRefreshTimer = 0;
+            }
 
             if (elapsed > 0.25) elapsed = 0.25; // Lag spike protection
             accumulator += elapsed;
@@ -316,13 +337,21 @@ public class PhysicsLoop extends Canvas implements Runnable {
             // Step the deterministic physics
             while (accumulator >= targetDt) {
                 world.step(targetDt, this);
+                render();
+                frameCount++;           // count every actual render
                 accumulator -= targetDt;
             }
 
-            // Blit everything to screen
-            render();
+            if (fpsPrintTimer >= 1.0) {
+                currentFps = frameCount / fpsPrintTimer; // real renders per real second
+                cacheFPS.add(currentFps);
+                if (cacheFPS.size() > cacheFPSDistance) {
+                    cacheFPS.removeFirst();
+                }
+                frameCount = 0;
+                fpsPrintTimer = 0;
+            }
 
-            // Tiny sleep to prevent running hot at 100% CPU thread starvation
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
@@ -347,7 +376,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
 
         // Draw bodies
         for (Body b : world.getBodies()) {
-            b.render(this);
+            if (!b.hasFlag(Flag.HIDDEN)) {
+                b.render(this);
+            }
         }
 
         // Push the raw pixel data to the native monitor hardware
@@ -366,6 +397,7 @@ public class PhysicsLoop extends Canvas implements Runnable {
      * @param y Given screen y coordinate to draw
      * @param color Given color to draw
      */
+    @Internal
     public void setPixel(int x, int y, int color) {
         if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
         pixels[y * WIDTH + x] = color;
@@ -376,6 +408,7 @@ public class PhysicsLoop extends Canvas implements Runnable {
      *
      * @param vertices Given list of vertices
      */
+    @Internal
     public void drawPolygon(Vector2[] vertices) {
         int count = vertices.length;
 
@@ -512,6 +545,7 @@ public class PhysicsLoop extends Canvas implements Runnable {
      * @param cY Given center y coordinate
      * @param radius Given circle radius
      */
+    @Internal
     public void drawCircle(double cX, double cY, double radius) {
         // Determine square that bounds the circle (for pixel looping)
         int minX = (int) Math.max(0, Math.floor(cX - radius));
@@ -539,5 +573,63 @@ public class PhysicsLoop extends Canvas implements Runnable {
                 }
             }
         }
+    }
+
+    // =================================================================================
+    // Console screen
+    // =================================================================================
+
+    private String[] buildConsoleBox() {
+        int width = 100;
+        String border = "+" + "-".repeat(width - 2) + "+";
+
+        List<String> lines = new ArrayList<>();
+        lines.add(border);
+        lines.add(padLine("| FPS:        " + (int) currentFps, width));
+        lines.add(padLine("| FPS (rolling avg):        " + (int) average(cacheFPS), width));
+
+        // dynamically add one line per body
+        for (Body b : world.getBodies()) {
+            if (b.hasFlag(Flag.DEBUG)) {
+                lines.add(padLine("| ", width));
+                lines.add(padLine("| "+b.getName()+": POS ("+(int) b.getPosition().getX()+","+(int) b.getPosition().getY()+") VEL ("+(int) b.getVelocity().getX()+","+(int) b.getVelocity().getY()+") ROT "+(int) b.getAngle()+" ROTVEL "+(int) b.getAngularVelocity(), width));
+                // WIP debug features: visually: COM dot, bounding box;
+            }
+        }
+
+        lines.add(border);
+
+        return lines.toArray(new String[0]);
+    }
+
+    private String padLine(String s, int width) {
+        int spaces = Math.max(0, width - 1 - s.length());
+        return s + " ".repeat(spaces) + "|";
+    }
+
+    private void printConsoleBox() {
+        String[] box = buildConsoleBox();
+
+        if (!consoleFirstDraw) {
+            System.out.print(ESC + "[" + box.length + "F");
+        }
+        consoleFirstDraw = false;
+
+        for (String line : box) {
+            System.out.print(ESC + "[2K" + line + "\n");
+        }
+        System.out.flush();
+    }
+
+    private double average(List<Double> numList) {
+        if (numList.isEmpty()) {
+            return 0;
+        }
+
+        double sum = 0;
+        for (double num : numList) {
+            sum += num;
+        }
+        return sum / numList.size();
     }
 }

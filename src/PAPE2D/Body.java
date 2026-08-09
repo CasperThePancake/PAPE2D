@@ -2,7 +2,6 @@ package PAPE2D;
 
 import PAPE2D.helper.Vector2;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,12 +33,19 @@ public class Body {
     private double AABBminX, AABBmaxX, AABBminY, AABBmaxY;
     private Vector2 pseudoVelocity;
     private double pseudoAngularVelocity = 0;
-    private Set<Flag> flags = new HashSet<>();
+    private final Set<Flag> flags = new HashSet<>();
+    /**
+     * The default restitution for all bodies; used as their restitution unless overwritten
+     */
     public static double DEFAULT_RESTITUTION = 0.7;
     private double restitution = DEFAULT_RESTITUTION;
+    /**
+     * The default friction coefficient for all bodies; used as their friction coefficient unless overwritten
+     */
     public static double DEFAULT_FRICTION_COEFFICIENT = 1;
     private double frictionCoefficient = DEFAULT_FRICTION_COEFFICIENT;
-    private List<Fixture> fixtures = new ArrayList<>();
+    private final List<Fixture> fixtures;
+    private String name = "Unnamed body";
 
     // =================================================================================
     // Constructors
@@ -108,6 +114,7 @@ public class Body {
 
         // Determine and set origin vector (FROM user origin defined via this constructor/shapes TO actual position, so center of mass)
         Vector2 originVector = getPosition().minus(position);
+        setOriginVector(originVector);
 
         // Make sure everything is instantly updated (mainly important for polygons)
         updateInternally();
@@ -141,13 +148,35 @@ public class Body {
     // =================================================================================
 
     /**
+     * Get the name of this body
+     *
+     * @return Name of this body
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Set the name of this body
+     *
+     * @param name Given body name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    // =================================================================================
+    // Inertia & mass
+    // =================================================================================
+
+    /**
      * Get the origin vector for this body
      *
      * @note The origin vector is the vector pointing from the user origin (eg. rectangle corner) to the real origin (what stored position represents, mass center)
      *
      * @return Origin vector for this body
      */
-    public Vector2 getOriginVector() {
+    private Vector2 getOriginVector() {
         return originVector;
     }
 
@@ -329,22 +358,10 @@ public class Body {
     /**
      * Update the internals of the body
      */
-    public void updateInternally() {
+    void updateInternally() {
         for (Fixture f : fixtures) {
             f.updateInternally();
         }
-    }
-
-    /**
-     * Given a point on the body, returns the relative vector pointing from object COM/anchor to given point
-     *
-     * @note Used for torque calculations
-     *
-     * @param bodyPoint Point on the body to point towards
-     * @return Relative vector pointing from COM/anchor to given point
-     */
-    public Vector2 getRelativePosition(Vector2 bodyPoint) {
-        return bodyPoint.minus(this.getPosition());
     }
 
     /**
@@ -352,6 +369,7 @@ public class Body {
      *
      * @return This body's pseudo-velocity vector
      */
+    @Internal
     public Vector2 getPseudoVelocity() {
         return pseudoVelocity;
     }
@@ -361,6 +379,7 @@ public class Body {
      *
      * @param pseudoVelocity Given pseudo-velocity vector
      */
+    @Internal
     public void setPseudoVelocity(Vector2 pseudoVelocity) {
         this.pseudoVelocity = pseudoVelocity;
     }
@@ -370,6 +389,7 @@ public class Body {
      *
      * @param deltaPseudoVelocity Given pseudo-velocity delta
      */
+    @Internal
     public void addPseudoVelocity(Vector2 deltaPseudoVelocity) {
         setPseudoVelocity(getPseudoVelocity().plus(deltaPseudoVelocity));
     }
@@ -379,6 +399,7 @@ public class Body {
      *
      * @return This body's pseudo-angular velocity
      */
+    @Internal
     public double getPseudoAngularVelocity() {
         return pseudoAngularVelocity;
     }
@@ -388,6 +409,7 @@ public class Body {
      *
      * @param pseudoAngularVelocity Given pseudo-angular velocity
      */
+    @Internal
     public void setPseudoAngularVelocity(double pseudoAngularVelocity) {
         this.pseudoAngularVelocity = pseudoAngularVelocity;
     }
@@ -397,6 +419,7 @@ public class Body {
      *
      * @param deltaPseudoAngularVelocity Given pseudo-angular velocity delta
      */
+    @Internal
     public void addPseudoAngularVelocity(double deltaPseudoAngularVelocity) {
         setPseudoAngularVelocity(getPseudoAngularVelocity()+deltaPseudoAngularVelocity);
     }
@@ -436,7 +459,7 @@ public class Body {
         this.AABBmaxY = AABBmaxY;
     }
 
-    public void updateAABB() {
+    void updateAABB() {
         // Let the fixtures update theirs first
         for (Fixture f : fixtures) {
             f.updateAABB();
@@ -488,6 +511,15 @@ public class Body {
         setAABBmaxY(AABBmaxY);
     }
 
+    /**
+     * Get a specified AABB edge for this body
+     *
+     * @param axis The axis which the requested edge falls on (i.e. X for left edge)
+     * @param bound The boundary type of the requested edge
+     *
+     * @return The requested edge value
+     */
+    @Internal
     public double getEdgeValue(Axis axis, Bound bound) {
         if (axis == Axis.X) {
             return bound == Bound.MIN ? AABBminX : AABBmaxX;
@@ -496,6 +528,14 @@ public class Body {
         }
     }
 
+    /**
+     * Checks if this body's AABB overlaps with a given other body's AABB
+     *
+     * @param other Given other body
+     *
+     * @return True if AABBs have overlap; false otherwise
+     */
+    @Internal
     public boolean AABBOverlaps(Body other) {
         return (this.getEdgeValue(Axis.X,Bound.MIN) <= other.getEdgeValue(Axis.X,Bound.MAX))
                 && (this.getEdgeValue(Axis.X,Bound.MAX) >= other.getEdgeValue(Axis.X,Bound.MIN))
@@ -552,9 +592,38 @@ public class Body {
     // =================================================================================
     // Rendering
     // =================================================================================
-    public void render(PhysicsLoop physicsLoop) {
+    void render(PhysicsLoop physicsLoop) {
         for (Fixture f : fixtures) {
             f.render(physicsLoop);
+        }
+
+        // Debug rendering
+        if (hasFlag(Flag.DEBUG)) {
+            // Center of mass
+            Vector2 COMscreen = physicsLoop.worldToScreenCoords(getPosition());
+
+            for (int i = -2; i <= 2; i++) {
+                for (int j = -2; j <= 2; j++) {
+                    physicsLoop.setPixel((int) COMscreen.getX() + i, (int) COMscreen.getY() + j, PhysicsLoop.argb(255,255,0,0));
+                }
+            }
+
+            // AABB (bounding box)
+            // We know these lines are straight, so (luckily) no weird antialiasing nonsense is necessary
+            Vector2 topLeftScreen = physicsLoop.worldToScreenCoords(new Vector2(getAABBminX(),getAABBmaxY()));
+            Vector2 topRightScreen = physicsLoop.worldToScreenCoords(new Vector2(getAABBmaxX(),getAABBmaxY()));
+            Vector2 bottomRightScreen = physicsLoop.worldToScreenCoords(new Vector2(getAABBmaxX(),getAABBminY()));
+            Vector2 bottomLeftScreen = physicsLoop.worldToScreenCoords(new Vector2(getAABBminX(),getAABBminY()));
+
+            for (int i = (int) topLeftScreen.getY(); i <= (int) bottomLeftScreen.getY(); i++) {
+                physicsLoop.setPixel((int) bottomLeftScreen.getX(), i, PhysicsLoop.argb(255,0,255,0));
+                physicsLoop.setPixel((int) bottomRightScreen.getX(), i, PhysicsLoop.argb(255,0,255,0));
+            }
+
+            for (int j = (int) bottomLeftScreen.getX(); j <= (int) bottomRightScreen.getX(); j++) {
+                physicsLoop.setPixel(j, (int) topLeftScreen.getY(), PhysicsLoop.argb(255,0,255,0));
+                physicsLoop.setPixel(j, (int) bottomLeftScreen.getY(), PhysicsLoop.argb(255,0,255,0));
+            }
         }
     }
 

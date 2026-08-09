@@ -20,7 +20,7 @@ void main() {
     // Player
     Body player = new Square(new Vector2(0,15),15,1);
     player.addFlag(Flag.FROZEN_ROTATION);
-    player.setRestitution(0);
+    player.setRestitution(0); // No bounciness
     world.addBody(player);
 
     // Floors and walls

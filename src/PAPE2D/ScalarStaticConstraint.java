@@ -16,11 +16,11 @@ public abstract class ScalarStaticConstraint extends StaticConstraint {
     // =================================================================================
     // Getters & setters
     // =================================================================================
-    public double getCurrentBias() {
+    protected double getCurrentBias() {
         return currentBias;
     }
 
-    public double getJ() {
+    protected double getJ() {
         return J;
     }
 
@@ -28,21 +28,21 @@ public abstract class ScalarStaticConstraint extends StaticConstraint {
     // Scalar implementation
     // =================================================================================
 
-    public void capJ() {
+    protected void capJ() {
         // Static constraints generally do not perform J capping, this is only used for contact/friction constraints, which are dynamic constraints.
     }
 
-    public void capPseudoJ() {
+    protected void capPseudoJ() {
         // Same here!
     }
 
-    public void initConstraint(double beta, double dt) {
+    protected void initConstraint(double beta, double dt) {
         currentBias = calculateBias(beta,dt);
         J = 0; // No warm-starting (if you do add this, make sure to add that contribution of starting non-zero J here)
         pseudoJ = 0; // Never warm-start for pseudo-velocities!
     }
 
-    public void updateConstraint() {
+    protected void updateConstraint() {
         double J_old = J;
         double deltaJ = calculateDeltaJ();
         J += deltaJ;
@@ -51,7 +51,7 @@ public abstract class ScalarStaticConstraint extends StaticConstraint {
         updateVelocity(realDeltaJ);
     }
 
-    public void updatePseudoConstraint() {
+    protected void updatePseudoConstraint() {
         double pseudoJ_old = pseudoJ;
         double pseudoDeltaJ = calculatePseudoDeltaJ();
         pseudoJ += pseudoDeltaJ;
@@ -60,16 +60,16 @@ public abstract class ScalarStaticConstraint extends StaticConstraint {
         updatePseudoVelocity(realPseudoDeltaJ);
     }
 
-    public abstract void resetConstraint(World world);
+    protected abstract void resetConstraint(World world);
 
     // Abstract methods
-    public abstract double calculateDeltaJ();
+    protected abstract double calculateDeltaJ();
 
-    public abstract double calculatePseudoDeltaJ();
+    protected abstract double calculatePseudoDeltaJ();
 
-    public abstract void updateVelocity(double realDeltaJ);
+    protected abstract void updateVelocity(double realDeltaJ);
 
-    public abstract void updatePseudoVelocity(double realPseudoDeltaJ);
+    protected abstract void updatePseudoVelocity(double realPseudoDeltaJ);
 
-    public abstract double calculateBias(double beta, double dt);
+    protected abstract double calculateBias(double beta, double dt);
 }

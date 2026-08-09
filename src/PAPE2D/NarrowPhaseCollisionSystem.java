@@ -48,15 +48,4 @@ public abstract class NarrowPhaseCollisionSystem {
         }
         return outputManifolds;
     }
-
-    /**
-     * Check whether this potential colliding pair is a proper collision
-     *
-     * @param potentialCollidingPair Given potential colliding pair
-     *
-     * @return Whether the potential colliding pair is colliding
-     */
-    public boolean isColliding(PotentialCollidingPair potentialCollidingPair) {
-        return getContactManifolds(potentialCollidingPair) != null;
-    }
 }

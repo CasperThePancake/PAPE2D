@@ -6,6 +6,9 @@ import PAPE2D.World;
 
 import java.awt.event.KeyEvent;
 
+/**
+ * Example tick listener for basic camera movement
+ */
 public class CameraMovement implements TickListener {
     private double panSpeed = 300.0; // Pixels per second
 
@@ -44,7 +47,7 @@ public class CameraMovement implements TickListener {
                 currentZoom /= 1.1;
             }
 
-            // Clamp bounds
+            // Zoom level bounds
             if (currentZoom < 0.1) currentZoom = 0.1;
             if (currentZoom > 10.0) currentZoom = 10.0;
 

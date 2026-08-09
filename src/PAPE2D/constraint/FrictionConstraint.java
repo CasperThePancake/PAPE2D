@@ -1,6 +1,7 @@
 package PAPE2D.constraint;
 
 import PAPE2D.DynamicConstraint;
+import PAPE2D.Internal;
 import PAPE2D.ScalarDynamicConstraint;
 import PAPE2D.World;
 import PAPE2D.helper.ContactManifold;
@@ -53,7 +54,7 @@ public class FrictionConstraint extends ScalarDynamicConstraint {
         return -numerator / denominator;
     }
 
-    @Override
+    @Override @Internal
     public void capJ() {
         // Friction clamping
         double limit = frictionCoefficient * Math.abs(myContactConstraint.getJ());

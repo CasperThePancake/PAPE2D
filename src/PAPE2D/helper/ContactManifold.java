@@ -36,8 +36,8 @@ public class ContactManifold {
         this.body2 = body2;
         this.normalVector = normalVector;
         this.tangentVector = tangentVector;
-        this.contactPointRelativeBody1 = body1.getRelativePosition(contactPoint);
-        this.contactPointRelativeBody2 = body2.getRelativePosition(contactPoint);
+        this.contactPointRelativeBody1 = contactPoint.minus(body1.getPosition());
+        this.contactPointRelativeBody2 = contactPoint.minus(body2.getPosition());
     }
 
     // =================================================================================

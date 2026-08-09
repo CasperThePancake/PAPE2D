@@ -27,7 +27,11 @@ public enum Flag {
     /**
      * Disable the effect of universal forces on a body
      */
-    IGNORE_UNIVERSAL_FORCES;
+    IGNORE_UNIVERSAL_FORCES,
+    /**
+     * Disable rendering for a body
+     */
+    HIDDEN;
 
     Flag() {
     }

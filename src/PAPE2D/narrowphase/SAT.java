@@ -135,10 +135,6 @@ public class SAT extends NarrowPhaseCollisionSystem {
                 contactPoints.add(candidate2);
                 penetrationDepths.add(-separation2);
             }
-
-            if (incidentFixture.getParentBody().hasFlag(Flag.DEBUG) || referenceFixture.getParentBody().hasFlag(Flag.DEBUG)) {
-                IO.println("Amount of contact points: "+contactPoints.size());
-            }
         }
 
         // 7. Put it all into contact manifold and return
