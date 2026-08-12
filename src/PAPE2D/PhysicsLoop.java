@@ -4,14 +4,17 @@ import PAPE2D.helper.Vector2;
 
 import javax.swing.JFrame;
 import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.util.List;
@@ -44,9 +47,8 @@ public class PhysicsLoop extends Canvas implements Runnable {
 
     private boolean running = false;
 
-    // Direct pixel buffer
-    private final BufferedImage image;
-    private final int[] pixels;
+    // Graphics2D context used during the current frame's render pass
+    private Graphics2D currentGraphics;
 
     private double accumulator = 0.0;
 
@@ -70,10 +72,6 @@ public class PhysicsLoop extends Canvas implements Runnable {
 
         Dimension size = new Dimension(WIDTH, HEIGHT);
         setPreferredSize(size);
-
-        // Set up the raw blitting buffer
-        this.image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        this.pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
         // Attach a key listener directly to this Canvas component
         this.addKeyListener(new KeyAdapter() {
@@ -209,23 +207,6 @@ public class PhysicsLoop extends Canvas implements Runnable {
     }
 
     /**
-     * Convert given alpha, red, green, blue values to 32-bit color integer
-     *
-     * @param a Alpha value (0-255)
-     *
-     * @param r Red value (0-255)
-     *
-     * @param g Green value (0-255)
-     *
-     * @param b Blue value (0-255)
-     *
-     * @return According 32-bit color integer
-     */
-    public static int argb(int a, int r, int g, int b) {
-        return (a << 24) | (r << 16) | (g << 8) | b;
-    }
-
-    /**
      * Get the current world x coordinate corresponding to the middle of the screen
      *
      * @return Current world x coordinate corresponding to the middle of the screen
@@ -334,12 +315,18 @@ public class PhysicsLoop extends Canvas implements Runnable {
             if (elapsed > 0.25) elapsed = 0.25; // Lag spike protection
             accumulator += elapsed;
 
+            boolean didStep = false;
+
             // Step the deterministic physics
             while (accumulator >= targetDt) {
+                didStep = true;
                 world.step(targetDt, this);
-                render();
-                frameCount++;           // count every actual render
                 accumulator -= targetDt;
+            }
+
+            if (didStep) {
+                render();
+                frameCount++; // count every actual render
             }
 
             if (fpsPrintTimer >= 1.0) {
@@ -371,8 +358,15 @@ public class PhysicsLoop extends Canvas implements Runnable {
             return;
         }
 
+        Graphics2D g2d = (Graphics2D) bs.getDrawGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
         // Clear Screen with black
-        Arrays.fill(pixels, 0x000000);
+        g2d.setColor(Color.BLACK);
+        g2d.fillRect(0, 0, WIDTH, HEIGHT);
+
+        currentGraphics = g2d;
 
         // Draw bodies
         for (Body b : world.getBodies()) {
@@ -381,26 +375,38 @@ public class PhysicsLoop extends Canvas implements Runnable {
             }
         }
 
-        // Push the raw pixel data to the native monitor hardware
-        Graphics g = bs.getDrawGraphics();
-        g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
-        g.dispose();
+        g2d.dispose();
         bs.show();
     }
 
     // RENDERING UTILITIES
 
     /**
-     * Base single pixel drawing method
+     * Draw a square at the given position, with given width and color
      *
-     * @param x Given screen x coordinate to draw
-     * @param y Given screen y coordinate to draw
-     * @param color Given color to draw
+     * @param x Given x screen coordinate
+     * @param y Given y screen coordinate
+     * @param width Given width
+     * @param color Given color
+     */
+    public void drawSquare(double x, double y, double width, Color color) {
+        currentGraphics.setColor(color);
+        currentGraphics.fill(new Rectangle2D.Double(x, y, width, width));
+    }
+
+    /**
+     * Draw a line between the given points, with given color
+     *
+     * @param x1 Given x1 screen coordinate
+     * @param y1 Given y1 screen coordinate
+     * @param x2 Given x2 screen coordinate
+     * @param y2 Given y2 screen coordinate
+     * @param color Given color
      */
     @Internal
-    public void setPixel(int x, int y, int color) {
-        if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return;
-        pixels[y * WIDTH + x] = color;
+    public void drawLine(double x1, double y1, double x2, double y2, Color color) {
+        currentGraphics.setColor(color);
+        currentGraphics.draw(new Line2D.Double(x1, y1, x2, y2));
     }
 
     /**
@@ -411,131 +417,17 @@ public class PhysicsLoop extends Canvas implements Runnable {
     @Internal
     public void drawPolygon(Vector2[] vertices) {
         int count = vertices.length;
-
         if (count < 3) return;
 
-        // "Sort" vertices vertically
-        int minY = Integer.MAX_VALUE;
-        int maxY = Integer.MIN_VALUE;
-        int highestVertexIndex = 0;
-
-        for (int i = 0; i < count; i++) {
-            Vector2 vec = vertices[i];
-            if (vec.getY() < minY) {
-                minY = (int) Math.floor(vec.getY());
-                highestVertexIndex = i;
-            }
-
-            if (vec.getY() > maxY) {
-                maxY = (int) Math.ceil(vec.getY());
-            }
+        Path2D.Double path = new Path2D.Double();
+        path.moveTo(vertices[0].getX(), vertices[0].getY());
+        for (int i = 1; i < count; i++) {
+            path.lineTo(vertices[i].getX(), vertices[i].getY());
         }
+        path.closePath();
 
-        // Clip to screen boundaries to prevent out-of-bounds array crashes
-        if (minY < 0) minY = 0;
-        if (maxY >= HEIGHT) maxY = HEIGHT - 1;
-
-        // Identify starting edges (ones connected to highest vertex)
-        int leftIndex = highestVertexIndex;
-        int rightIndex = highestVertexIndex;
-
-        int leftNextIndex = (highestVertexIndex - 1 + count) % count; // The "+ count" part has no effect on modulo but is required since modulo doesn't work on negative ints
-        int rightNextIndex = (highestVertexIndex + 1) % count;
-
-        // Entry and exit tracking (easier since convex)
-        double entryX = vertices[highestVertexIndex].getX() * 4; // Using 4-subpixel rendering for antialiasing
-        double exitX = vertices[highestVertexIndex].getX() * 4;
-
-        double leftInverseSlope = calculateInverseSlope(vertices[leftIndex],vertices[leftNextIndex]) * 4; // Once again, reasoning in subpixels
-        double rightInverseSlope = calculateInverseSlope(vertices[rightIndex],vertices[rightNextIndex]) * 4;
-
-        // Interpolate entryX/exitX from the top vertex down to the actual starting scanline
-        double topVertexY = vertices[highestVertexIndex].getY();
-        if (topVertexY < minY) {
-            double dy = minY - topVertexY;
-            entryX += leftInverseSlope * dy;
-            exitX += rightInverseSlope * dy;
-        }
-
-        // Start scanning down, line by line
-        for (int y = minY; y <= maxY; y++) {
-            // Check if left edge has expired
-            while (y > vertices[leftNextIndex].getY() && y < maxY) {
-                leftIndex = leftNextIndex;
-                leftNextIndex = (leftIndex - 1 + count) % count;
-                leftInverseSlope = calculateInverseSlope(vertices[leftIndex],vertices[leftNextIndex]) * 4;
-                // Re-calculate the entry and slope
-                double vertexY = vertices[leftIndex].getY();
-                entryX = (vertices[leftIndex].getX() + (y - vertexY) * (leftInverseSlope / 4.0)) * 4;
-            }
-
-            // Check if right edge has expired
-            while (y > vertices[rightNextIndex].getY() && y < maxY) {
-                rightIndex = rightNextIndex;
-                rightNextIndex = (rightIndex + 1) % count;
-                rightInverseSlope = calculateInverseSlope(vertices[rightIndex],vertices[rightNextIndex]) * 4;
-                // Re-calculate the exit and slope
-                double vertexY = vertices[rightIndex].getY();
-                exitX = (vertices[rightIndex].getX() + (y - vertexY) * (rightInverseSlope / 4.0)) * 4;
-            }
-
-            // Determine subpixel and pixel entry/exit properly
-            int subXStart = (int) Math.round(Math.min(entryX,exitX));
-            int subXEnd = (int) Math.round(Math.max(entryX,exitX));
-
-            int pixelXStart = subXStart / 4;
-            int pixelXEnd = subXEnd / 4;
-
-            // Fill the row, using antialiasing
-            for (int x = pixelXStart; x <= pixelXEnd; x++) {
-                int subXLeft = x * 4; // Sub-pixels for this x
-                int subXRight = x * 4 + 3;
-
-                // Determine amount of covered subpixels
-                int activeSubPixels;
-                if (subXLeft >= subXStart && subXRight <= subXEnd) {
-                    activeSubPixels = 4;
-                } else {
-                    int overlapStart = Math.max(subXLeft,subXStart);
-                    int overlapEnd = Math.min(subXRight,subXEnd);
-                    activeSubPixels = Math.max(0, overlapEnd - overlapStart + 1);
-                }
-
-                if (activeSubPixels == 0) continue; // No coverage somehow, go to next pixel
-
-                double coverage = activeSubPixels / 4.0;
-
-                // Set pixel (black 'n white)
-                setPixel(x,y,argb((int) Math.round(255*coverage), 255, 255, 255));
-            }
-
-            // Update edges using slopes
-            entryX += leftInverseSlope;
-            exitX += rightInverseSlope;
-
-            // Clamp to valid X range of current edges (prevents blow-up on near-horizontal edges)
-            double leftMinX = Math.min(vertices[leftIndex].getX(), vertices[leftNextIndex].getX()) * 4;
-            double leftMaxX = Math.max(vertices[leftIndex].getX(), vertices[leftNextIndex].getX()) * 4;
-            double rightMinX = Math.min(vertices[rightIndex].getX(), vertices[rightNextIndex].getX()) * 4;
-            double rightMaxX = Math.max(vertices[rightIndex].getX(), vertices[rightNextIndex].getX()) * 4;
-
-            entryX = Math.max(leftMinX, Math.min(leftMaxX, entryX));
-            exitX = Math.max(rightMinX, Math.min(rightMaxX, exitX));
-        }
-    }
-
-    /**
-     * Calculate the inverse slope from one point to another
-     *
-     * @param fromPoint Starting point
-     * @param toPoint End point
-     *
-     * @return Inverse slope from starting point to end point (dx/dy)
-     */
-    private double calculateInverseSlope(Vector2 fromPoint, Vector2 toPoint) {
-        double x1 = fromPoint.getX(), y1 = fromPoint.getY(), x2 = toPoint.getX(), y2 = toPoint.getY();
-        if (y1 == y2) return 0;
-        return (x2 - x1) / (y2 - y1);
+        currentGraphics.setColor(Color.WHITE);
+        currentGraphics.fill(path);
     }
 
     /**
@@ -547,32 +439,10 @@ public class PhysicsLoop extends Canvas implements Runnable {
      */
     @Internal
     public void drawCircle(double cX, double cY, double radius) {
-        // Determine square that bounds the circle (for pixel looping)
-        int minX = (int) Math.max(0, Math.floor(cX - radius));
-        int maxX = (int) Math.min(WIDTH,Math.ceil(cX + radius));
-        int minY = (int) Math.max(0, Math.floor(cY - radius));
-        int maxY = (int) Math.min(HEIGHT, Math.ceil(cY + radius));
+        Ellipse2D.Double circle = new Ellipse2D.Double(cX - radius, cY - radius, radius * 2, radius * 2);
 
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                // Determine pixel center coordinates
-                double pX = x + 0.5;
-                double pY = y + 0.5;
-
-                // Determine distance from center
-                double d = Math.sqrt((cX - pX)*(cX - pX) + (cY - pY)*(cY - pY));
-
-                // Filling logic
-                if (d < radius - 0.5) { // Pixel fully covered
-                    setPixel(x,y,argb(255,255,255,255));
-                } else if (d > radius + 0.5) { // Pixel fully uncovered
-                    continue;
-                } else { // Partially covered: anti-aliasing
-                    double coverage = (radius + 0.5) - d;
-                    setPixel(x,y,argb((int) Math.round(255*coverage), 255, 255, 255));
-                }
-            }
-        }
+        currentGraphics.setColor(Color.WHITE);
+        currentGraphics.fill(circle);
     }
 
     // =================================================================================

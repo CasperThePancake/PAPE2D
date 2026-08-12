@@ -2,6 +2,7 @@ package PAPE2D;
 
 import PAPE2D.helper.Vector2;
 
+import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -601,12 +602,7 @@ public class Body {
         if (hasFlag(Flag.DEBUG)) {
             // Center of mass
             Vector2 COMscreen = physicsLoop.worldToScreenCoords(getPosition());
-
-            for (int i = -2; i <= 2; i++) {
-                for (int j = -2; j <= 2; j++) {
-                    physicsLoop.setPixel((int) COMscreen.getX() + i, (int) COMscreen.getY() + j, PhysicsLoop.argb(255,255,0,0));
-                }
-            }
+            physicsLoop.drawSquare(COMscreen.getX()-1,COMscreen.getY()-1,2, Color.RED);
 
             // AABB (bounding box)
             // We know these lines are straight, so (luckily) no weird antialiasing nonsense is necessary
@@ -615,15 +611,10 @@ public class Body {
             Vector2 bottomRightScreen = physicsLoop.worldToScreenCoords(new Vector2(getAABBmaxX(),getAABBminY()));
             Vector2 bottomLeftScreen = physicsLoop.worldToScreenCoords(new Vector2(getAABBminX(),getAABBminY()));
 
-            for (int i = (int) topLeftScreen.getY(); i <= (int) bottomLeftScreen.getY(); i++) {
-                physicsLoop.setPixel((int) bottomLeftScreen.getX(), i, PhysicsLoop.argb(255,0,255,0));
-                physicsLoop.setPixel((int) bottomRightScreen.getX(), i, PhysicsLoop.argb(255,0,255,0));
-            }
-
-            for (int j = (int) bottomLeftScreen.getX(); j <= (int) bottomRightScreen.getX(); j++) {
-                physicsLoop.setPixel(j, (int) topLeftScreen.getY(), PhysicsLoop.argb(255,0,255,0));
-                physicsLoop.setPixel(j, (int) bottomLeftScreen.getY(), PhysicsLoop.argb(255,0,255,0));
-            }
+            physicsLoop.drawLine(topLeftScreen.getX(),topLeftScreen.getY(),topRightScreen.getX(),topRightScreen.getY(),Color.GREEN);
+            physicsLoop.drawLine(topRightScreen.getX(),topRightScreen.getY(),bottomRightScreen.getX(),bottomRightScreen.getY(),Color.GREEN);
+            physicsLoop.drawLine(bottomRightScreen.getX(),bottomRightScreen.getY(),bottomLeftScreen.getX(),bottomLeftScreen.getY(),Color.GREEN);
+            physicsLoop.drawLine(bottomLeftScreen.getX(),bottomLeftScreen.getY(),topLeftScreen.getX(),topLeftScreen.getY(),Color.GREEN);
         }
     }
 

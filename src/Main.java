@@ -25,7 +25,7 @@ public class Main {
         PhysicsLoop loop = new PhysicsLoop(world, 240);
 
         // N balls simulation (stress test)
-        int N = 900;
+        int N = 100;
 
         for (int i = 0; i < N; i++) {
             Body myBall = new Circle(new Vector2((double) i /N * 40, (double) i /N * 45),10,1);
