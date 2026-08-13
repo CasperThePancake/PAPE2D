@@ -2,6 +2,7 @@ import PAPE2D.*;
 import PAPE2D.bodies.Circle;
 import PAPE2D.bodies.Rectangle;
 import PAPE2D.broadphase.SweepAndPrune;
+import PAPE2D.force.AirResistance;
 import PAPE2D.force.Gravity;
 import PAPE2D.helper.Vector2;
 import PAPE2D.narrowphase.SAT;

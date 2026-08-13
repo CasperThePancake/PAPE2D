@@ -37,11 +37,12 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Being worked on
 (For the next update)
 
-- Better air resistance implementation (since 09/08/2026)
+- Better air resistanceTranslation implementation (since 09/08/2026)
 
 ### Planned features
 (In order of planned importance)
 
 - Heavy optimizations
+- Area Of Effect objects for more control over forces/attributes per world area
 - Support for concave polygons using new built-in fixture system
 - Sprite rendering system
