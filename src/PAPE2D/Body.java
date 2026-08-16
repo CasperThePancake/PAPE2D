@@ -1,5 +1,6 @@
 package PAPE2D;
 
+import PAPE2D.graphics.Sprite;
 import PAPE2D.helper.Vector2;
 
 import java.awt.*;
@@ -47,6 +48,13 @@ public class Body {
     private double frictionCoefficient = DEFAULT_FRICTION_COEFFICIENT;
     private final List<Fixture> fixtures;
     private String name = "Unnamed body";
+
+    private Sprite sprite = null;
+    private double spriteScaleX = 1.0;
+    private double spriteScaleY = 1.0;
+    private double spriteRotate = 0.0;
+    private double spriteTranslateX = 0.0;
+    private double spriteTranslateY = 0.0;
 
     // =================================================================================
     // Constructors
@@ -594,8 +602,12 @@ public class Body {
     // Rendering
     // =================================================================================
     void render(PhysicsLoop physicsLoop) {
-        for (Fixture f : fixtures) {
-            f.render(physicsLoop);
+        if (getSprite() == null) { // Body has no sprite --> default hitbox renderer
+            for (Fixture f : fixtures) {
+                f.render(physicsLoop);
+            }
+        } else { // Body has a sprite --> just render this sprite
+            physicsLoop.drawSprite(sprite,getPosition().getX()+spriteTranslateX,getPosition().getY()+spriteTranslateY,spriteScaleX,spriteScaleY,spriteRotate+getAngle());
         }
 
         // Debug rendering
@@ -662,5 +674,186 @@ public class Body {
      */
     public List<Fixture> getFixtures() {
         return fixtures;
+    }
+
+    // =================================================================================
+    // Sprites
+    // =================================================================================
+
+
+    /**
+     * Get this body's sprite
+     *
+     * @return The sprite for this body; null if no sprite has been set (uses default hitbox renderer)
+     */
+    public Sprite getSprite() {
+        return sprite;
+    }
+
+    /**
+     * Set this body's sprite
+     *
+     * @param sprite Given sprite or null to clear the sprite
+     */
+    public void setSprite(Sprite sprite) {
+        this.sprite = sprite;
+    }
+
+    /**
+     * Clear this body's sprite
+     */
+    public void clearSprite() {
+        setSprite(null);
+    }
+
+    /**
+     * Get this body's X sprite scaling factor
+     *
+     * @note Scaled relative to original image's pixel dimensions at an unzoomed level (zoom = 1.0)
+     * @note Zooming the camera will still scale the image relatively (on top of this factor)
+     * @note Only applies if the body has a sprite, otherwise renders exact hitbox
+     *
+     * @return This body's X sprite scaling factor
+     */
+    public double getSpriteScaleX() {
+        return spriteScaleX;
+    }
+
+    /**
+     * Set this body's X sprite scaling factor
+     *
+     * @note Scaled relative to original image's pixel dimensions at an unzoomed level (zoom = 1.0)
+     * @note Zooming the camera will still scale the image relatively (on top of this factor)
+     * @note Only applies if the body has a sprite, otherwise renders exact hitbox
+     *
+     * @param spriteScaleX Given X sprite scaling factor
+     */
+    public void setSpriteScaleX(double spriteScaleX) {
+        this.spriteScaleX = spriteScaleX;
+    }
+
+    /**
+     * Get this body's Y sprite scaling factor
+     *
+     * @note Scaled relative to original image's pixel dimensions at an unzoomed level (zoom = 1.0)
+     * @note Zooming the camera will still scale the image relatively (on top of this factor)
+     * @note Only applies if the body has a sprite, otherwise renders exact hitbox
+     *
+     * @return This body's Y sprite scaling factor
+     */
+    public double getSpriteScaleY() {
+        return spriteScaleY;
+    }
+
+    /**
+     * Set this body's Y sprite scaling factor
+     *
+     * @note Scaled relative to original image's pixel dimensions at an unzoomed level (zoom = 1.0)
+     * @note Zooming the camera will still scale the image relatively (on top of this factor)
+     * @note Only applies if the body has a sprite, otherwise renders exact hitbox
+     *
+     * @param spriteScaleY Given Y sprite scaling factor
+     */
+    public void setSpriteScaleY(double spriteScaleY) {
+        this.spriteScaleY = spriteScaleY;
+    }
+
+    /**
+     * Get this body's sprite rotation angle
+     *
+     * @note Given rotation is combined with body angle for dynamic rotation, unless disabled using flags
+     * @note Only applies if the body has a sprite, otherwise renders exact hitbox
+     * @note Angle is in radians
+     * @note Rotation happens around the image's center, not the body's center; keep in mind when combining with translations
+     *
+     * @return This body's sprite rotation angle
+     */
+    public double getSpriteRotate() {
+        return spriteRotate;
+    }
+
+    /**
+     * Set this body's sprite rotation angle
+     *
+     * @note Given rotation is combined with body angle for dynamic rotation, unless disabled using flags
+     * @note Only applies if the body has a sprite, otherwise renders exact hitbox
+     * @note Angle is in radians
+     * @note Rotation happens around the image's center, not the body's center; keep in mind when combining with translations
+     *
+     * @param spriteRotate Given sprite rotation angle
+     */
+    public void setSpriteRotate(double spriteRotate) {
+        this.spriteRotate = spriteRotate;
+    }
+
+    /**
+     * Get this body's X sprite translation value
+     *
+     * @note By default, the body's position (COM) corresponds to the center of the rendered image
+     * @note This translation is applied relative to the default case
+     * @note A body only renders if its AABB (hitbox boundaries) is on-screen; be careful with large translations
+     * @note If the body has no sprite (renders hitbox), this setting has no effect
+     *
+     * @return This body's X sprite translation value
+     */
+    public double getSpriteTranslateX() {
+        return spriteTranslateX;
+    }
+
+    /**
+     * Set this body's X sprite translation value
+     *
+     * @note By default, the body's position (COM) corresponds to the center of the rendered image
+     * @note This translation is applied relative to the default case
+     * @note A body only renders if its AABB (hitbox boundaries) is on-screen; be careful with large translations
+     * @note If the body has no sprite (renders hitbox), this setting has no effect
+     *
+     * @param spriteTranslateX Given X sprite translation value
+     */
+    public void setSpriteTranslateX(double spriteTranslateX) {
+        this.spriteTranslateX = spriteTranslateX;
+    }
+
+    /**
+     * Get this body's Y sprite translation value
+     *
+     * @note By default, the body's position (COM) corresponds to the center of the rendered image
+     * @note This translation is applied relative to the default case
+     * @note A body only renders if its AABB (hitbox boundaries) is on-screen; be careful with large translations
+     * @note If the body has no sprite (renders hitbox), this setting has no effect
+     *
+     * @return This body's Y sprite translation value
+     */
+    public double getSpriteTranslateY() {
+        return spriteTranslateY;
+    }
+
+    /**
+     * Set this body's Y sprite translation value
+     *
+     * @note By default, the body's position (COM) corresponds to the center of the rendered image
+     * @note This translation is applied relative to the default case
+     * @note A body only renders if its AABB (hitbox boundaries) is on-screen; be careful with large translations
+     * @note If the body has no sprite (renders hitbox), this setting has no effect
+     *
+     * @param spriteTranslateY Given Y sprite translation value
+     */
+    public void setSpriteTranslateY(double spriteTranslateY) {
+        this.spriteTranslateY = spriteTranslateY;
+    }
+
+    /**
+     * Set this body's sprite scaling factor for both X and Y
+     *
+     * @note This will apply the same scaling factor in both directions (retains aspect ratio)
+     * @note Scaled relative to original image's pixel dimensions at an unzoomed level (zoom = 1.0)
+     * @note Zooming the camera will still scale the image relatively (on top of this factor)
+     * @note Only applies if the body has a sprite, otherwise renders exact hitbox
+     *
+     * @param spriteScale Given sprite scaling factor
+     */
+    public void setSpriteScale(double spriteScale) {
+        setSpriteScaleX(spriteScale);
+        setSpriteScaleY(spriteScale);
     }
 }

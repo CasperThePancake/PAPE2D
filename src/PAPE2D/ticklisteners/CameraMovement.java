@@ -54,4 +54,9 @@ public class CameraMovement implements TickListener {
             tickedPhysicsLoop.setCamZoom(currentZoom);
         }
     }
+
+    @Override
+    public void init(World tickedWorld) {
+
+    }
 }

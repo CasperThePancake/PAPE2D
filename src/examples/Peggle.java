@@ -4,6 +4,7 @@ import PAPE2D.bodies.Rectangle;
 import PAPE2D.broadphase.SweepAndPrune;
 import PAPE2D.force.AirResistance;
 import PAPE2D.force.Gravity;
+import PAPE2D.graphics.Sprite;
 import PAPE2D.helper.Vector2;
 import PAPE2D.narrowphase.SAT;
 import PAPE2D.ticklisteners.CameraMovement;
@@ -16,14 +17,22 @@ void main() {
     // Initiate world and physics loop
     World world = new World(new SweepAndPrune(), new SAT(), 0.3, 10, RestitutionMethod.MAX,FrictionCoefficientMethod.MEAN_GEOMETRIC);
     PhysicsLoop loop = new PhysicsLoop(world, 200);
+    Sprite pegglePeg = null;
+    try {
+        pegglePeg = new Sprite("src/examples/peg.png");
+    } catch (IOException e) {
+        System.err.println("Failed to load sprite file: " + e.getMessage());
+    }
 
     // Pegs
     double pegDistanceX = 50;
     double pegDistanceY = 50;
     for (double x = -500; x <= 500; x += pegDistanceX) {
         for (double y = 300; y >= 0; y -= pegDistanceY) {
-            Body newPeg = new Circle(new Vector2(x, y),5, 1);
+            Body newPeg = new Circle(new Vector2(x, y),9, 1);
             newPeg.addFlag(Flag.FROZEN);
+            newPeg.setSprite(pegglePeg);
+            newPeg.setSpriteScale((double) 18 / 18);
             world.addBody(newPeg);
         }
     }
@@ -45,9 +54,9 @@ void main() {
     // Forces and camera movement
     world.addUniversalForce(new Gravity(200));
     world.addPreUpdateTickListener(new CameraMovement(300));
-
     world.addPreUpdateTickListener(new TickListener() {
         private boolean down = false;
+        private Sprite peggleBall;
 
         @Override
         public void onTick(World tickedWorld, PhysicsLoop tickedPhysicsLoop, double dt) {
@@ -58,11 +67,24 @@ void main() {
                 double shootSpeed = 200;
                 Vector2 velocity = cursor.minus(spawn).normalized().times(shootSpeed);
                 Body ball = new Circle(spawn,10,1,velocity);
+                ball.setSprite(peggleBall);
                 ball.setRestitution(1.0);
+                ball.setSpriteScale(0.2);
                 tickedWorld.addBody(ball);
                 down = true;
             } else if (!tickedPhysicsLoop.isKeyDown(KeyEvent.VK_A) && down) {
                 down = false;
+            }
+        }
+
+        @Override
+        public void init(World tickedWorld) {
+            // Sprites
+            peggleBall = null;
+            try {
+                peggleBall = new Sprite("src/examples/peggleball.png");
+            } catch (IOException e) {
+                System.err.println("Failed to load sprite file: " + e.getMessage());
             }
         }
     });

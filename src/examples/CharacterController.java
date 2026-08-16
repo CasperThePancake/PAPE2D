@@ -79,6 +79,11 @@ void main() {
                 down = false;
             }
         }
+
+        @Override
+        public void init(World tickedWorld) {
+
+        }
     });
 
     // Run the simulation

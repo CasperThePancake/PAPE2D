@@ -366,6 +366,7 @@ public class World {
      */
     public void addPreUpdateTickListener(TickListener tickListener) {
         this.preUpdateListeners.add(tickListener);
+        tickListener.init(this);
     }
 
     /**
@@ -391,6 +392,7 @@ public class World {
      */
     public void addPostUpdateTickListener(TickListener tickListener) {
         this.postUpdateListeners.add(tickListener);
+        tickListener.init(this);
     }
 
     /**

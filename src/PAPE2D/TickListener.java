@@ -12,4 +12,11 @@ public interface TickListener {
      * @param tickedPhysicsLoop Physics loop associated with this tick
      */
     void onTick(World tickedWorld, PhysicsLoop tickedPhysicsLoop, double dt);
+
+    /**
+     * Called when this tick listener is added to the world
+     *
+     * @param tickedWorld World associated with this tick
+     */
+    void init(World tickedWorld);
 }

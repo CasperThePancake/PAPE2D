@@ -31,7 +31,11 @@ public enum Flag {
     /**
      * Disable rendering for a body
      */
-    HIDDEN;
+    HIDDEN,
+    /**
+     * Stop a body's sprite from rotating along with it, with the sprite's rotation only controlled by 'spriteRotate' attribute
+     */
+    SPRITE_FIXED_ANGLE;
 
     Flag() {
     }

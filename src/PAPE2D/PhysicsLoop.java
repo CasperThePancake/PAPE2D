@@ -1,5 +1,6 @@
 package PAPE2D;
 
+import PAPE2D.graphics.Sprite;
 import PAPE2D.helper.Vector2;
 
 import javax.swing.JFrame;
@@ -14,6 +15,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -55,6 +57,12 @@ public class PhysicsLoop extends Canvas implements Runnable {
     private double camX = 0;
     private double camY = 0;
     private double camZoom = 1;
+
+    // Pre-allocate drawing objects
+    private final Path2D.Double reusablePath = new Path2D.Double();
+    private final Ellipse2D.Double reusableCircle = new Ellipse2D.Double();
+    private final Line2D.Double reusableLine = new Line2D.Double();
+    private final Rectangle2D.Double reusableRect = new Rectangle2D.Double();
 
     // =================================================================================
     // Constructors & initialization
@@ -263,6 +271,29 @@ public class PhysicsLoop extends Canvas implements Runnable {
     // =================================================================================
     // Playback control
     // =================================================================================
+
+    /**
+     * Check if a given AABB is visible on the screen
+     *
+     * @param minX Minimum x of AABB
+     * @param minY Minimum y of AABB
+     * @param maxX Maximum x of AABB
+     * @param maxY Maximum y of AABB
+     *
+     * @return Whether the AABB is visible on the screen
+     */
+    public boolean isAABBVisible(double minX, double minY, double maxX, double maxY) {
+        double halfWidthWorld = (WIDTH / 2.0) / camZoom;
+        double halfHeightWorld = (HEIGHT / 2.0) / camZoom;
+
+        double camMinX = camX - halfWidthWorld;
+        double camMaxX = camX + halfWidthWorld;
+        double camMinY = camY - halfHeightWorld;
+        double camMaxY = camY + halfHeightWorld;
+
+        return !(maxX < camMinX || minX > camMaxX || maxY < camMinY || minY > camMaxY);
+    }
+
     /**
      * Start the physics loop
      */
@@ -325,7 +356,11 @@ public class PhysicsLoop extends Canvas implements Runnable {
             }
 
             if (didStep) {
-                render();
+                try {
+                    render();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 frameCount++; // count every actual render
             }
 
@@ -350,7 +385,7 @@ public class PhysicsLoop extends Canvas implements Runnable {
     // =================================================================================
     // Rendering
     // =================================================================================
-    private void render() {
+    private void render() throws IOException {
         // Create buffer strategy
         BufferStrategy bs = getBufferStrategy();
         if (bs == null) {
@@ -360,7 +395,7 @@ public class PhysicsLoop extends Canvas implements Runnable {
 
         Graphics2D g2d = (Graphics2D) bs.getDrawGraphics();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED); // Prioritize speed over quality
 
         // Clear Screen with black
         g2d.setColor(Color.BLACK);
@@ -371,7 +406,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
         // Draw bodies
         for (Body b : world.getBodies()) {
             if (!b.hasFlag(Flag.HIDDEN)) {
-                b.render(this);
+                if (isAABBVisible(b.getAABBminX(),b.getAABBminY(),b.getAABBmaxX(),b.getAABBmaxY())) { // Don't render if off-screen
+                    b.render(this);
+                }
             }
         }
 
@@ -391,7 +428,8 @@ public class PhysicsLoop extends Canvas implements Runnable {
      */
     public void drawSquare(double x, double y, double width, Color color) {
         currentGraphics.setColor(color);
-        currentGraphics.fill(new Rectangle2D.Double(x, y, width, width));
+        reusableRect.setFrame(x, y, width, width);
+        currentGraphics.fill(reusableRect);
     }
 
     /**
@@ -406,7 +444,8 @@ public class PhysicsLoop extends Canvas implements Runnable {
     @Internal
     public void drawLine(double x1, double y1, double x2, double y2, Color color) {
         currentGraphics.setColor(color);
-        currentGraphics.draw(new Line2D.Double(x1, y1, x2, y2));
+        reusableLine.setLine(x1, y1, x2, y2);
+        currentGraphics.draw(reusableLine);
     }
 
     /**
@@ -419,15 +458,15 @@ public class PhysicsLoop extends Canvas implements Runnable {
         int count = vertices.length;
         if (count < 3) return;
 
-        Path2D.Double path = new Path2D.Double();
-        path.moveTo(vertices[0].getX(), vertices[0].getY());
+        reusablePath.reset();
+        reusablePath.moveTo(vertices[0].getX(), vertices[0].getY());
         for (int i = 1; i < count; i++) {
-            path.lineTo(vertices[i].getX(), vertices[i].getY());
+            reusablePath.lineTo(vertices[i].getX(), vertices[i].getY());
         }
-        path.closePath();
+        reusablePath.closePath();
 
         currentGraphics.setColor(Color.WHITE);
-        currentGraphics.fill(path);
+        currentGraphics.fill(reusablePath);
     }
 
     /**
@@ -439,10 +478,32 @@ public class PhysicsLoop extends Canvas implements Runnable {
      */
     @Internal
     public void drawCircle(double cX, double cY, double radius) {
-        Ellipse2D.Double circle = new Ellipse2D.Double(cX - radius, cY - radius, radius * 2, radius * 2);
-
+        reusableCircle.setFrame(cX - radius, cY - radius, radius * 2, radius * 2);
         currentGraphics.setColor(Color.WHITE);
-        currentGraphics.fill(circle);
+        currentGraphics.fill(reusableCircle);
+    }
+
+    /**
+     * Render a PNG sprite with world-to-screen coordinate conversion and camera scaling
+     *
+     * @param sprite The preloaded Sprite instance
+     * @param worldX World X coordinate of the object
+     * @param worldY World Y coordinate of the object
+     * @param scaleX Custom sprite scale factor X (1.0 = normal size)
+     * @param scaleY Custom sprite scale factor Y (1.0 = normal size)
+     * @param angleRadians Body rotation angle in radians
+     */
+    @Internal
+    public void drawSprite(Sprite sprite, double worldX, double worldY, double scaleX, double scaleY, double angleRadians) {
+        // Convert world space coordinates to screen pixels
+        Vector2 screenPos = worldToScreenCoords(new Vector2(worldX, worldY));
+
+        // Combine camera zoom with object scale
+        double totalScaleX = scaleX * camZoom;
+        double totalScaleY = scaleY * camZoom;
+
+        // Delegate hardware-accelerated drawing to the sprite
+        sprite.render(currentGraphics, screenPos.getX(), screenPos.getY(), totalScaleX, totalScaleY, angleRadians);
     }
 
     // =================================================================================
