@@ -17,7 +17,7 @@ It was not easy to get this up and running: I hit many brick walls where I spent
 Now I want to keep building the library, to make it more accessible and actually useful as a tool for other developers and researchers. This means implementing more (complex) features, as well as side-tools like sprite rendering.
 
 ### Most recent video demonstration (YouTube)
-[![Most recent demonstration video](https://img.youtube.com/vi/g-z_9HfjeSQ/0.jpg)](https://www.youtube.com/watch?v=g-z_9HfjeSQ)
+[![Most recent demonstration video](https://img.youtube.com/vi/fTBu7jKdSuA/0.jpg)](https://www.youtube.com/watch?v=fTBu7jKdSuA)
 
 ---
 
