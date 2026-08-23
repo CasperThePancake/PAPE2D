@@ -45,4 +45,4 @@ Now I want to keep building the library, to make it more accessible and actually
 - Body sleeping to weaken numerical drift
 - Z-ordering for sprite rendering
 - Area Of Effect objects for more control over forces/attributes per world area
-- Support for concave polygons using new built-in fixture system
+- Support for concave polygons using fixture system
