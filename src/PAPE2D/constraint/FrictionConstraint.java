@@ -11,10 +11,16 @@ import PAPE2D.helper.Vector2;
  * Constraint that reduces tangential motion between two bodies up to a maximum
  */
 public class FrictionConstraint extends ScalarDynamicConstraint {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private ContactConstraint myContactConstraint;
     private ContactManifold contactManifold;
     private double frictionCoefficient;
 
+    // =================================================================================
+    // Constructors
+    // =================================================================================
     public FrictionConstraint(ContactConstraint myContactConstraint, ContactManifold contactManifold, double frictionCoefficient) {
         this.myContactConstraint = myContactConstraint;
         this.contactManifold = contactManifold;
@@ -25,6 +31,9 @@ public class FrictionConstraint extends ScalarDynamicConstraint {
         this(myContactConstraint, contactManifold, 1.0);
     }
 
+    // =================================================================================
+    // Solver methods
+    // =================================================================================
     @Override
     public double calculateDeltaJ() {
         Vector2 tangent = contactManifold.getTangentVector();

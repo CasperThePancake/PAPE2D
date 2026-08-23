@@ -108,7 +108,7 @@ public class Body {
         for (int i = 0; i < fixtures.size(); i++) {
             Fixture f = fixtures.get(i);
             Vector2 fOrigin = fixtureOrigins.get(i);
-            f.setParentCOMToThisCOM(f.getCOM(position.plus(fOrigin)).times(f.getMass()).minus(getPosition()));
+            f.setParentCOMToThisCOM(f.getCOM(position.plus(fOrigin)).minus(getPosition()));
             f.setParentBody(this);
         }
 
@@ -607,7 +607,12 @@ public class Body {
                 f.render(physicsLoop);
             }
         } else { // Body has a sprite --> just render this sprite
-            physicsLoop.drawSprite(sprite,getPosition().getX()+spriteTranslateX,getPosition().getY()+spriteTranslateY,spriteScaleX,spriteScaleY,spriteRotate+getAngle());
+            if (hasFlag(Flag.SPRITE_WITH_HITBOX)) { // Also still render hitbox (below sprite)
+                for (Fixture f : fixtures) {
+                    f.render(physicsLoop);
+                }
+            }
+            physicsLoop.drawSprite(sprite,getPosition().getX()+spriteTranslateX,getPosition().getY()+spriteTranslateY,spriteScaleX,spriteScaleY,-(spriteRotate+getAngle()));
         }
 
         // Debug rendering

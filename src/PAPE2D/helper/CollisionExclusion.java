@@ -8,8 +8,15 @@ import java.util.Objects;
  * Helper class for exclusion rules in collisions, disabling collisions between two specified bodies
  */
 public class CollisionExclusion {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private Body body1;
     private Body body2;
+
+    // =================================================================================
+    // Constructor
+    // =================================================================================
 
     /**
      * Create a new collision exclusion rule
@@ -29,6 +36,10 @@ public class CollisionExclusion {
             this.body2 = body1;
         }
     }
+
+    // =================================================================================
+    // Getters and inspectors
+    // =================================================================================
 
     /**
      * Get the first body in this collision exclusion rule

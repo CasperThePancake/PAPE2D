@@ -20,7 +20,7 @@ public class DistanceConstraint extends ScalarStaticConstraint {
     private double fixedDistance; // Distance to force using this constraint
 
     // =================================================================================
-    // Constructor
+    // Constructors
     // =================================================================================
 
     /**
@@ -157,7 +157,7 @@ public class DistanceConstraint extends ScalarStaticConstraint {
     }
 
     // =================================================================================
-    // Implementations
+    // Solver methods
     // =================================================================================
     @Override
     public double calculateDeltaJ() {

@@ -252,4 +252,14 @@ public class Vector2 {
     public String toString() {
         return "("+getX()+","+getY()+")";
     }
+
+    /**
+     * Copy the given vector's values into this vector's values, without changing references
+     *
+     * @param other Given other vector
+     */
+    public void copyFrom(Vector2 other) {
+        setX(other.getX());
+        setY(other.getY());
+    }
 }

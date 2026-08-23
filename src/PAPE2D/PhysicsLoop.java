@@ -119,6 +119,13 @@ public class PhysicsLoop extends Canvas implements Runnable {
     }
 
     private void initWindow() {
+        // Enable system hardware acceleration for Java2D
+        System.setProperty("sun.java2d.opengl", "true");
+        System.setProperty("sun.awt.noerasebackground", "true");
+
+        // Ignore OS repaint events so Java doesn't clear the canvas twice
+        this.setIgnoreRepaint(true);
+
         JFrame frame = new JFrame("PAPE2D Simulation");
         frame.setResizable(false);
         frame.add(this);
@@ -126,6 +133,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
+        // Pre-create the BufferStrategy once the frame is visible
+        this.createBufferStrategy(2);
     }
 
     /**
@@ -325,30 +335,30 @@ public class PhysicsLoop extends Canvas implements Runnable {
     @Override
     public void run() {
         long lastTime = System.nanoTime();
+        double frameTargetNs = 1_000_000_000.0 * targetDt; // Target nanoseconds per frame (e.g. ~4.16ms for 240 FPS)
 
-        int frameCount = 0; // actual renders in this window
+        int frameCount = 0;
 
         while (running) {
             long now = System.nanoTime();
             double elapsed = (now - lastTime) / 1_000_000_000.0;
             lastTime = now;
 
-            // FPS calculation window
+            // Timers
             fpsPrintTimer += elapsed;
-
-            // Console screen
             consoleRefreshTimer += elapsed;
+
             if (consoleRefreshTimer >= 0.2) {
                 printConsoleBox();
                 consoleRefreshTimer = 0;
             }
 
-            if (elapsed > 0.25) elapsed = 0.25; // Lag spike protection
+            if (elapsed > 0.25) elapsed = 0.25; // Spiral-of-death guard
             accumulator += elapsed;
 
             boolean didStep = false;
 
-            // Step the deterministic physics
+            // Step physics to catch up to real time
             while (accumulator >= targetDt) {
                 didStep = true;
                 world.step(targetDt, this);
@@ -361,11 +371,12 @@ public class PhysicsLoop extends Canvas implements Runnable {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                frameCount++; // count every actual render
+                frameCount++;
             }
 
+            // Calculate current FPS every second
             if (fpsPrintTimer >= 1.0) {
-                currentFps = frameCount / fpsPrintTimer; // real renders per real second
+                currentFps = frameCount / fpsPrintTimer;
                 cacheFPS.add(currentFps);
                 if (cacheFPS.size() > cacheFPSDistance) {
                     cacheFPS.removeFirst();
@@ -374,10 +385,25 @@ public class PhysicsLoop extends Canvas implements Runnable {
                 fpsPrintTimer = 0;
             }
 
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            // Calculate how much time this frame actually took
+            long frameEnd = System.nanoTime();
+            long frameDurationNs = frameEnd - now;
+            long sleepTimeNs = (long) frameTargetNs - frameDurationNs;
+
+            if (sleepTimeNs > 0) {
+                // High-precision sleep mechanism
+                long sleepMillis = sleepTimeNs / 1_000_000;
+                int sleepNanos = (int) (sleepTimeNs % 1_000_000);
+
+                try {
+                    if (sleepMillis > 0) {
+                        Thread.sleep(sleepMillis, sleepNanos);
+                    } else {
+                        Thread.sleep(0, sleepNanos);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -394,12 +420,13 @@ public class PhysicsLoop extends Canvas implements Runnable {
         }
 
         Graphics2D g2d = (Graphics2D) bs.getDrawGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED); // Prioritize speed over quality
 
         // Clear Screen with black
         g2d.setColor(Color.BLACK);
         g2d.fillRect(0, 0, WIDTH, HEIGHT);
+
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED); // Prioritize speed over quality
 
         currentGraphics = g2d;
 
@@ -562,5 +589,17 @@ public class PhysicsLoop extends Canvas implements Runnable {
             sum += num;
         }
         return sum / numList.size();
+    }
+
+    /**
+     * Get the current FPS for this physics loop
+     *
+     * @note A frame is counted as one render call, which is called after stepping the physics world until it has caught up with accumulated time
+     * @note If lagging, the physics steps will take longer, meaning more time will pass between possible frame renders, reducing the displayed FPS.
+     *
+     * @return Current FPS for this physics loop
+     */
+    public double getCurrentFps() {
+        return currentFps;
     }
 }

@@ -10,7 +10,6 @@ public class RevoluteJointConstraint extends StaticConstraint {
     // =================================================================================
     // Attributes
     // =================================================================================
-
     protected Vector2 J = new Vector2();
     protected Vector2 pseudoJ = new Vector2();
     private Vector2 currentBias;
@@ -60,7 +59,7 @@ public class RevoluteJointConstraint extends StaticConstraint {
     }
 
     // =================================================================================
-    // Solver implementation (with vectors)
+    // Solver methods
     // =================================================================================
 
     public void capJ() {

@@ -15,11 +15,17 @@ import java.util.List;
  * @note Origin point corresponds to first specified vertex
  */
 public class Polygon extends Fixture {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private List<Vector2> internalVertices = new ArrayList<>();
     private List<Vector2> internalEdges = new ArrayList<>();
     private List<Vector2> worldVertices = new ArrayList<>();
     private double area;
 
+    // =================================================================================
+    // Constructor
+    // =================================================================================
     /**
      * Create a new (convex) polygon fixture with given mass and list of vertex coordinates
      *
@@ -56,6 +62,9 @@ public class Polygon extends Fixture {
         setInternalEdges(workingVertices);
     }
 
+    // =================================================================================
+    // Internal methods
+    // =================================================================================
     /**
      * Get the internal vertex vectors (from real origin/COM to vertices, non-rotated) for this polygon
      *

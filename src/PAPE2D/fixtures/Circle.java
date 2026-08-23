@@ -12,8 +12,14 @@ import java.util.List;
  * @note Origin point corresponds to circle center
  */
 public class Circle extends Fixture {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private double radius;
 
+    // =================================================================================
+    // Constructor
+    // =================================================================================
     /**
      * Create a new circle fixture with given mass and radius
      *
@@ -25,6 +31,9 @@ public class Circle extends Fixture {
         super(mass,calculateInertiaMoment(mass,radius));
     }
 
+    // =================================================================================
+    // Getters
+    // =================================================================================
     /**
      * Get the radius of this circle fixture
      *
@@ -34,6 +43,9 @@ public class Circle extends Fixture {
         return radius;
     }
 
+    // =================================================================================
+    // Internal methods
+    // =================================================================================
     protected static double calculateInertiaMoment(double mass, double radius) {
         return 0.5 * mass * radius * radius;
     }

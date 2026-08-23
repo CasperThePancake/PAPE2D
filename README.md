@@ -42,6 +42,9 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Planned features
 (In order of planned importance)
 
+- Automatic sprite stretch to fit AABB
+- Settings to toggle in both World and PhysicsLoop
+- Body sleeping to weaken numerical drift
+- Z-ordering for sprite rendering
 - Area Of Effect objects for more control over forces/attributes per world area
 - Support for concave polygons using new built-in fixture system
-- Sprite rendering system

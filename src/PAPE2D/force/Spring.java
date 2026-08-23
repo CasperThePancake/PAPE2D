@@ -99,7 +99,7 @@ public class Spring extends LocalForce {
     }
 
     // =================================================================================
-    // Attributes
+    // Constructors
     // =================================================================================
 
     /**
@@ -126,6 +126,10 @@ public class Spring extends LocalForce {
     public Spring(Body body1, Body body2, double stiffness) {
         this(body1,body2,stiffness,body1.getPosition().minus(body2.getPosition()).size());
     }
+
+    // =================================================================================
+    // Apply acceleration
+    // =================================================================================
 
     @Override
     public void applyAcceleration(double dt) {

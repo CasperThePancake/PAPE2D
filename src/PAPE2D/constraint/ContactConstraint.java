@@ -2,7 +2,9 @@ package PAPE2D.constraint;
 
 import PAPE2D.*;
 import PAPE2D.bodies.Circle;
+import PAPE2D.helper.ContactBuffer;
 import PAPE2D.helper.ContactManifold;
+import PAPE2D.helper.ContactRecord;
 import PAPE2D.helper.Vector2;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,17 +13,26 @@ import java.util.List;
  * Constraint that forces two possibly colliding bodies to stop penetrating (and bounce back)
  */
 public class ContactConstraint extends ScalarDynamicConstraint {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private ContactManifold contactManifold;
     private FrictionConstraint myFrictionConstraint;
     private double bounceVelocity = 0.0;
     private double beta = 0;
     private RestitutionMethod restitutionMethod;
 
+    // =================================================================================
+    // Constructor
+    // =================================================================================
     public ContactConstraint(ContactManifold contactManifold, RestitutionMethod restitutionMethod) {
         setContactManifold(contactManifold);
         this.restitutionMethod = restitutionMethod;
     }
 
+    // =================================================================================
+    // Initialization and friction relation
+    // =================================================================================
     public ContactManifold getContactManifold() {
         return contactManifold;
     }
@@ -50,6 +61,9 @@ public class ContactConstraint extends ScalarDynamicConstraint {
         return new FrictionConstraint(this, getContactManifold(), frictionCoefficientMethod.calculateCoefficient(contactManifold.getBody1().getFrictionCoefficient(),contactManifold.getBody2().getFrictionCoefficient()));
     }
 
+    // =================================================================================
+    // Solver methods
+    // =================================================================================
     @Override
     public double calculateDeltaJ() {
         Vector2 normal = contactManifold.getNormalVector();
@@ -210,5 +224,19 @@ public class ContactConstraint extends ScalarDynamicConstraint {
 
         contactManifold.getBody1().addPseudoAngularVelocity(-rel1CrossN * realPseudoDeltaJ * invInertia1);
         contactManifold.getBody2().addPseudoAngularVelocity(rel2CrossN * realPseudoDeltaJ * invInertia2);
+    }
+
+    // =================================================================================
+    // Contact records
+    // =================================================================================
+
+    /**
+     * Add the contact record for this (solved) contact constraint to the given contact buffer
+     *
+     * @param contactBuffer Given contact buffer
+     */
+    @Internal
+    public void addRecord(ContactBuffer contactBuffer) {
+        contactBuffer.addContact(contactManifold.getBody1(),contactManifold.getBody2(),contactManifold.getContactPoint(),contactManifold.getNormalVector(),contactManifold.getTangentVector(),contactManifold.getPenetrationDepth(),getJ());
     }
 }

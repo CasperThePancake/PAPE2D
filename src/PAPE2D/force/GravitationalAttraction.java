@@ -5,9 +5,16 @@ import PAPE2D.LocalForce;
 import PAPE2D.helper.Vector2;
 
 public class GravitationalAttraction extends LocalForce {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private final double G;
     private final Body body1;
     private final Body body2;
+
+    // =================================================================================
+    // Constructor
+    // =================================================================================
 
     /**
      * Create a new gravitational attraction force
@@ -22,6 +29,9 @@ public class GravitationalAttraction extends LocalForce {
         this.G = G;
     }
 
+    // =================================================================================
+    // Apply acceleration
+    // =================================================================================
     @Override
     public void applyAcceleration(double dt) {
         Vector2 connection = body2.getPosition().minus(body1.getPosition()).normalized(); // Vector from body 1 to body 2

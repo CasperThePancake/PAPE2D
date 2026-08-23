@@ -13,10 +13,16 @@ import javax.imageio.ImageIO;
  * Sprite class for preloading images to render
  */
 public class Sprite {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private final BufferedImage image;
     private final int width;
     private final int height;
 
+    // =================================================================================
+    // Constructor
+    // =================================================================================
     /**
      * Loads an image and converts it into a hardware-accelerated VRAM surface.
      *
@@ -34,6 +40,10 @@ public class Sprite {
         this.width = image.getWidth();
         this.height = image.getHeight();
     }
+
+    // =================================================================================
+    // Rendering methods
+    // =================================================================================
 
     /**
      * Render the sprite onto the given Graphics2D context with position, scale, and rotation.

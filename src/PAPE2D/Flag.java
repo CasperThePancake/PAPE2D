@@ -35,7 +35,11 @@ public enum Flag {
     /**
      * Stop a body's sprite from rotating along with it, with the sprite's rotation only controlled by 'spriteRotate' attribute
      */
-    SPRITE_FIXED_ANGLE;
+    SPRITE_FIXED_ANGLE,
+    /**
+     * Render both a body's sprite and its white hitbox as if it has no sprite
+     */
+    SPRITE_WITH_HITBOX;
 
     Flag() {
     }

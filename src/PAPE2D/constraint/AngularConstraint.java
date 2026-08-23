@@ -9,10 +9,16 @@ import PAPE2D.World;
  * Constraint that enforces two bodies have an equal rotational velocity and remain at the same angular difference
  */
 public class AngularConstraint extends ScalarStaticConstraint {
+    // =================================================================================
+    // Attributes
+    // =================================================================================
     private Body body1;
     private Body body2;
     private double angleDifference;
 
+    // =================================================================================
+    // Constructors
+    // =================================================================================
     /**
      * Create a new angular constraint between the two given bodies, with enforced angular difference based on current value
      *
@@ -38,6 +44,9 @@ public class AngularConstraint extends ScalarStaticConstraint {
         this.angleDifference = angleDifference;
     }
 
+    // =================================================================================
+    // Solver methods
+    // =================================================================================
     @Override
     public double calculateDeltaJ() {
         double rotSpeed1 = body1.getAngularVelocity();

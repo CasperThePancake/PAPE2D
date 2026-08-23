@@ -3,10 +3,7 @@ package PAPE2D;
 import PAPE2D.broadphase.SweepAndPrune;
 import PAPE2D.constraint.ContactConstraint;
 import PAPE2D.constraint.FrictionConstraint;
-import PAPE2D.helper.CollisionExclusion;
-import PAPE2D.helper.ContactManifold;
-import PAPE2D.helper.PotentialCollidingPair;
-import PAPE2D.helper.Vector2;
+import PAPE2D.helper.*;
 import PAPE2D.narrowphase.SAT;
 
 import java.util.ArrayList;
@@ -34,6 +31,7 @@ public class World {
     private final Set<CollisionExclusion> collisionExclusions = new HashSet<>();
     private final RestitutionMethod restitutionMethod;
     private final FrictionCoefficientMethod frictionCoefficientMethod;
+    private final ContactBuffer contactBuffer = new ContactBuffer();
 
     // =================================================================================
     // Constructors
@@ -82,6 +80,9 @@ public class World {
         for (TickListener tickListener : preUpdateListeners) {
             tickListener.onTick(this, linkedLoop, dt);
         }
+
+        // Reset contact buffer
+        contactBuffer.reset();
 
         // Optionally reset static constraints (i.e. (re-)disable collisions for welds)
         for (StaticConstraint s : staticConstraints) {
@@ -178,6 +179,11 @@ public class World {
 
         // Update the broad phase system for next step
         broadPhase.update();
+
+        // Keep track of contact records
+        for (ContactConstraint c : contactConstraints) {
+            c.addRecord(contactBuffer);
+        }
 
         // Post-update ticking
         for (TickListener tickListener : postUpdateListeners) {
@@ -483,5 +489,18 @@ public class World {
      */
     public Set<CollisionExclusion> getCollisionExclusions() {
         return collisionExclusions;
+    }
+
+    // =================================================================================
+    // Contact buffer
+    // =================================================================================
+
+    /**
+     * Get the contact buffer for this world
+     *
+     * @return Contact buffer for this world
+     */
+    public ContactBuffer getContactBuffer() {
+        return contactBuffer;
     }
 }
