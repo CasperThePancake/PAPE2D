@@ -36,13 +36,12 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Being worked on
 (For the next update)
 
-- Heavy optimizations (since 13/08/2026)
+- Automatic sprite stretch to fit AABB (since 23/08/2026)
+- Settings to toggle in both World and PhysicsLoop (since 23/08/2026)
 
 ### Planned features
 (In order of planned importance)
 
-- Automatic sprite stretch to fit AABB
-- Settings to toggle in both World and PhysicsLoop
 - Body sleeping to weaken numerical drift
 - Z-ordering for sprite rendering
 - Area Of Effect objects for more control over forces/attributes per world area
