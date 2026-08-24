@@ -56,6 +56,11 @@ public class Body {
     private double spriteTranslateX = 0.0;
     private double spriteTranslateY = 0.0;
 
+    /**
+     * Default sprite scaling method; if not null, it is used to fit each sprite to the body when that sprite is set
+     */
+    public static SpriteScalingMethod DEFAULT_SPRITE_FIT = SpriteScalingMethod.FIT;
+
     // =================================================================================
     // Constructors
     // =================================================================================
@@ -127,6 +132,7 @@ public class Body {
 
         // Make sure everything is instantly updated (mainly important for polygons)
         updateInternally();
+        updateAABB();
     }
 
     /**
@@ -702,6 +708,10 @@ public class Body {
      */
     public void setSprite(Sprite sprite) {
         this.sprite = sprite;
+
+        if (DEFAULT_SPRITE_FIT != null && sprite != null) {
+            fitSprite(DEFAULT_SPRITE_FIT);
+        }
     }
 
     /**
@@ -789,6 +799,10 @@ public class Body {
      */
     public void setSpriteRotate(double spriteRotate) {
         this.spriteRotate = spriteRotate;
+
+        if (World.SETTING_REFIT_BODY_SPRITE_ON_ROTATE) {
+            fitSprite(DEFAULT_SPRITE_FIT);
+        }
     }
 
     /**
@@ -860,5 +874,21 @@ public class Body {
     public void setSpriteScale(double spriteScale) {
         setSpriteScaleX(spriteScale);
         setSpriteScaleY(spriteScale);
+    }
+
+    /**
+     * Fit this body's sprite into the body's AABB by scaling it with the requested scaling method
+     *
+     * @param spriteScalingMethod Given scaling method to fit the sprite into the AABB
+     */
+    public void fitSprite(SpriteScalingMethod spriteScalingMethod) {
+        if (sprite != null) {
+            double widthAABB = Math.abs(getAABBmaxX() - getAABBminX());
+            double heightAABB = Math.abs(getAABBmaxY() - getAABBminY());
+
+            double[] necessaryScaling = spriteScalingMethod.calculateScaling(widthAABB,heightAABB,sprite.getWidth(),sprite.getHeight(),getSpriteRotate());
+            setSpriteScaleX(necessaryScaling[0]);
+            setSpriteScaleY(necessaryScaling[1]);
+        }
     }
 }

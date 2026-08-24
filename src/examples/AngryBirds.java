@@ -86,24 +86,19 @@ void main() {
     Body baseLeft  = new Rectangle(new Vector2(-115, 20), 110, 20, 5);
     Body baseRight = new Rectangle(new Vector2(-5, 20),   110, 20, 5);
     baseLeft.setSprite(baseSprite);
-    baseLeft.setSpriteScaleX(0.11);
-    baseLeft.setSpriteScaleY(0.2);
     baseRight.setSprite(baseSprite);
-    baseRight.setSpriteScaleX(0.11);
-    baseRight.setSpriteScaleY(0.2);
+
+    World.SETTING_REFIT_BODY_SPRITE_ON_ROTATE = true;
+    Body.DEFAULT_SPRITE_FIT = SpriteScalingMethod.STRETCH;
 
 // Outer end stops resting on top of base platforms (Y: 20 -> 50)
     Body endStopLeft  = new Rectangle(new Vector2(-112, 50), 15, 30, 2);
     Body endStopRight = new Rectangle(new Vector2(97, 50),   15, 30, 2);
     endStopLeft.setSprite(woodSprite);
     endStopLeft.setSpriteRotate(Math.PI/2);
-    endStopLeft.setSpriteScaleX(0.03);
-    endStopLeft.setSpriteScaleY(0.15);
 
     endStopRight.setSprite(woodSprite);
     endStopRight.setSpriteRotate(Math.PI/2);
-    endStopRight.setSpriteScaleX(0.03);
-    endStopRight.setSpriteScaleY(0.15);
 
 // =========================================================================
 // 2. INNER GLASS MINI-STRUCTURE (Sitting on base)
@@ -112,8 +107,6 @@ void main() {
     Body glassBase = new Rectangle(new Vector2(-35, 30), 70, 10, 2);
 
     glassBase.setSprite(woodSprite);
-    glassBase.setSpriteScaleX(0.07);
-    glassBase.setSpriteScaleY(0.1);
 
 // Glass pillars (Y: 30 -> 100)
     Body glassPillarLeft  = new Rectangle(new Vector2(-28, 100), 12, 70, 1);
@@ -121,20 +114,14 @@ void main() {
 
     glassPillarLeft.setSprite(iceSprite);
     glassPillarLeft.setSpriteRotate(Math.PI/2);
-    glassPillarLeft.setSpriteScaleX(0.07);
-    glassPillarLeft.setSpriteScaleY(0.12);
 
     glassPillarRight.setSprite(iceSprite);
     glassPillarRight.setSpriteRotate(Math.PI/2);
-    glassPillarRight.setSpriteScaleX(0.07);
-    glassPillarRight.setSpriteScaleY(0.12);
 
 // Upper wooden cap resting on glass (Y: 100 -> 110)
     Body glassCap = new Rectangle(new Vector2(-35, 110), 70, 10, 2);
 
     glassCap.setSprite(woodSprite);
-    glassCap.setSpriteScaleX(0.07);
-    glassCap.setSpriteScaleY(0.1);
 
 // =========================================================================
 // 3. LOWER WOOD FRAME (Flanking Glass)
@@ -145,20 +132,14 @@ void main() {
 
     lowerPillarLeft.setSprite(woodSprite);
     lowerPillarLeft.setSpriteRotate(Math.PI/2);
-    lowerPillarLeft.setSpriteScaleX(0.12);
-    lowerPillarLeft.setSpriteScaleY(0.15);
 
     lowerPillarRight.setSprite(woodSprite);
     lowerPillarRight.setSpriteRotate(Math.PI/2);
-    lowerPillarRight.setSpriteScaleX(0.12);
-    lowerPillarRight.setSpriteScaleY(0.15);
 
 // Mid-level horizontal roof beam sitting on pillars (Y: 140 -> 155)
     Body midRoof = new Rectangle(new Vector2(-65, 155), 130, 15, 4);
 
     midRoof.setSprite(woodSprite);
-    midRoof.setSpriteScaleX(0.13);
-    midRoof.setSpriteScaleY(0.15);
 
 // =========================================================================
 // 4. UPPER WOOD FRAME & PIG TOWER
@@ -167,13 +148,10 @@ void main() {
     Body pigPedestal = new Rectangle(new Vector2(-15, 170), 30, 15, 2);
 
     pigPedestal.setSprite(woodSprite);
-    pigPedestal.setSpriteScaleX(0.03);
-    pigPedestal.setSpriteScaleY(0.15);
 
 // Target Pig (Circle center at X: 0, Y: 187)
     Body pig = new Circle(new Vector2(0, 187), 17, 1);
     pig.setSprite(pigSprite);
-    pig.setSpriteScale((double) 34 /250);
 
 // Upper vertical pillars resting on midRoof (Y: 155 -> 275)
     Body upperPillarLeft  = new Rectangle(new Vector2(-35, 275), 15, 120, 4);
@@ -181,39 +159,29 @@ void main() {
 
     upperPillarLeft.setSprite(woodSprite);
     upperPillarLeft.setSpriteRotate(-Math.PI/2);
-    upperPillarLeft.setSpriteScaleX(0.12);
-    upperPillarLeft.setSpriteScaleY(0.15);
 
     upperPillarRight.setSprite(woodSprite);
     upperPillarRight.setSpriteRotate(-Math.PI/2);
-    upperPillarRight.setSpriteScaleX(0.12);
-    upperPillarRight.setSpriteScaleY(0.15);
 
 // Top roof beam (Y: 275 -> 290)
     Body topRoof = new Rectangle(new Vector2(-40, 290), 80, 15, 3);
 
     topRoof.setSprite(woodSprite);
-    topRoof.setSpriteScaleX(0.08);
-    topRoof.setSpriteScaleY(0.15);
 
 // Top vertical spire block resting on topRoof (Y: 290 -> 320)
     Body topSpire = new Rectangle(new Vector2(-7.5, 320), 15, 30, 1);
 
     topSpire.setSprite(woodSprite);
     topSpire.setSpriteRotate(Math.PI/2);
-    topSpire.setSpriteScaleX(0.03);
-    topSpire.setSpriteScaleY(0.15);
 
     Body slingshot = new Rectangle(new Vector2(-300,100),50,100,1);
     slingshot.addFlag(Flag.FROZEN);
     slingshot.addFlag(Flag.NO_COLLISION);
     slingshot.setSprite(slingshotSprite);
-    slingshot.setSpriteScale(0.2);
 
     Body red = new Circle(new Vector2(-280,90),17,3);
     red.addFlag(Flag.FROZEN);
     red.setSprite(redSprite);
-    red.setSpriteScale((double) 34 /250);
 
     //
 

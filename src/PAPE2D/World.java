@@ -33,6 +33,17 @@ public class World {
     private final FrictionCoefficientMethod frictionCoefficientMethod;
     private final ContactBuffer contactBuffer = new ContactBuffer();
 
+    // Settings
+
+    /**
+     * If true, all body contacts with relevant information will be recorded and accessible via getContactBuffer(); if false, buffer stays empty
+     */
+    public static boolean SETTING_RECORD_CONTACTS = true;
+    /**
+     * If true, changing the sprite rotation for a body will re-fit the sprite onto the body's AABB; if false, this will not occur
+     */
+    public static boolean SETTING_REFIT_BODY_SPRITE_ON_ROTATE = false;
+
     // =================================================================================
     // Constructors
     // =================================================================================
@@ -181,8 +192,10 @@ public class World {
         broadPhase.update();
 
         // Keep track of contact records
-        for (ContactConstraint c : contactConstraints) {
-            c.addRecord(contactBuffer);
+        if (SETTING_RECORD_CONTACTS) {
+            for (ContactConstraint c : contactConstraints) {
+                c.addRecord(contactBuffer);
+            }
         }
 
         // Post-update ticking

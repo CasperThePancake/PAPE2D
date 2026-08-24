@@ -64,6 +64,12 @@ public class PhysicsLoop extends Canvas implements Runnable {
     private final Line2D.Double reusableLine = new Line2D.Double();
     private final Rectangle2D.Double reusableRect = new Rectangle2D.Double();
 
+    // Settings
+    /**
+     * If true, a second-by-second log of the simulation will be printed in the console, with FPS information and debug body details; if false, nothing is printed
+     */
+    public static boolean SETTING_DISPLAY_LOGS = true;
+
     // =================================================================================
     // Constructors & initialization
     // =================================================================================
@@ -349,7 +355,9 @@ public class PhysicsLoop extends Canvas implements Runnable {
             consoleRefreshTimer += elapsed;
 
             if (consoleRefreshTimer >= 0.2) {
-                printConsoleBox();
+                if (SETTING_DISPLAY_LOGS) {
+                    printConsoleBox();
+                }
                 consoleRefreshTimer = 0;
             }
 
