@@ -36,13 +36,11 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Being worked on
 (For the next update)
 
-- Automatic sprite stretch to fit AABB (since 23/08/2026)
-- Settings to toggle in both World and PhysicsLoop (since 23/08/2026)
+- Body sleeping to weaken numerical drift (since 24/08/2026)
+- Z-ordering for sprite rendering (since 24/08/2026)
 
 ### Planned features
 (In order of planned importance)
 
-- Body sleeping to weaken numerical drift
-- Z-ordering for sprite rendering
 - Area Of Effect objects for more control over forces/attributes per world area
 - Support for concave polygons using fixture system
