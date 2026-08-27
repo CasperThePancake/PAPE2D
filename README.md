@@ -42,5 +42,6 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Planned features
 (In order of planned importance)
 
+- Option for revolute pin joints to snap/break
 - Area Of Effect objects for more control over forces/attributes per world area
 - Support for concave polygons using fixture system
