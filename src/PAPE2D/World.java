@@ -6,10 +6,7 @@ import PAPE2D.constraint.FrictionConstraint;
 import PAPE2D.helper.*;
 import PAPE2D.narrowphase.SAT;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The main frame holding all simulation information
@@ -32,6 +29,7 @@ public class World {
     private final RestitutionMethod restitutionMethod;
     private final FrictionCoefficientMethod frictionCoefficientMethod;
     private final ContactBuffer contactBuffer = new ContactBuffer();
+    private final List<Island> islands = new ArrayList<>();
 
     // Settings
 
@@ -43,6 +41,18 @@ public class World {
      * If true, changing the sprite rotation for a body will re-fit the sprite onto the body's AABB; if false, this will not occur
      */
     public static boolean SETTING_REFIT_BODY_SPRITE_ON_ROTATE = false;
+    /**
+     * If true, non-frozen bodies will automatically group into islands that can fall asleep when not in motion to save on performance and to counteract numerical errors; if false, this process will not take place
+     */
+    public static boolean SETTING_DO_SLEEPING = true;
+    /**
+     * Controls how long bodies in an island must stay still for until they fall asleep
+     */
+    public static double SETTING_SLEEP_TIMER = 0.5;
+    /**
+     * Controls how much motion (absolute position change per frame) a body can have for it to count as 'standing still' in sleeping logic
+     */
+    public static double SETTING_SLEEP_MOTION_THRESHOLD = 0.02;
 
     // =================================================================================
     // Constructors
@@ -52,7 +62,7 @@ public class World {
      * Create a world with recommended settings
      */
     public World() {
-        this(new SweepAndPrune(), new SAT(), 0.3, 10, RestitutionMethod.PRODUCT,FrictionCoefficientMethod.MEAN_GEOMETRIC);
+        this(new SweepAndPrune(), new SAT(), 0.08, 25, RestitutionMethod.PRODUCT,FrictionCoefficientMethod.MEAN_GEOMETRIC);
     }
 
     /**
@@ -90,6 +100,14 @@ public class World {
         // Pre-update ticking
         for (TickListener tickListener : preUpdateListeners) {
             tickListener.onTick(this, linkedLoop, dt);
+        }
+
+        // Check for awakened islands
+        islands.removeIf(Island::isDestroyed);
+
+        // Store the body's current positions temporarily, to compare after changes have been applied
+        for (Body b : bodies) {
+            b.setTempPosition(b.getPosition());
         }
 
         // Reset contact buffer
@@ -151,6 +169,21 @@ public class World {
             }
         }
 
+        // Reduce numerical slop
+        for (Body b : bodies) {
+            if (Math.abs(b.getAngularVelocity()) < 0.005) {
+                b.setAngularVelocity(0.0);
+            }
+
+            Vector2 v = b.getVelocity();
+            if (Math.abs(v.getX()) < 0.01) {
+                v.setX(0.0);
+            }
+            if (Math.abs(v.getY()) < 0.02) {
+                v.setY(0.0);
+            }
+        }
+
         // Apply the accumulated pseudo-velocities to fix positions cleanly
         for (Body b : bodies) {
             if (b.hasFlag(Flag.FROZEN)) {
@@ -169,6 +202,10 @@ public class World {
 
         // Perform standard time step integration
         for (Body b : bodies) {
+            if (b.isSleeping()) {
+                continue;
+            }
+
             if (b.hasFlag(Flag.FROZEN)) {
                 b.setVelocity(new Vector2());
                 b.setAngularVelocity(0);
@@ -184,6 +221,9 @@ public class World {
 
         // Update each body internally for next step
         for (Body b : bodies) {
+            if (b.isSleeping()) {
+                continue;
+            }
             b.updateInternally();
             b.updateAABB();
         }
@@ -196,6 +236,49 @@ public class World {
             for (ContactConstraint c : contactConstraints) {
                 c.addRecord(contactBuffer);
             }
+        }
+
+        // Keep track of contact bodies
+        for (Body b : bodies) {
+            b.clearContactBodies();
+        }
+
+        for (ContactConstraint c : contactConstraints) {
+            c.getContactManifold().getBody1().addContactBody(c.getContactManifold().getBody2());
+            c.getContactManifold().getBody2().addContactBody(c.getContactManifold().getBody1());
+        }
+
+        // Islands and body sleeping
+        if (SETTING_DO_SLEEPING) {
+            for (Body b : bodies) {
+                if (b.hasFlag(Flag.FROZEN_ROTATION) || b.hasFlag(Flag.FROZEN_TRANSLATION) || b.hasFlag(Flag.FROZEN) || b.getIsland() != null) {
+                    continue;
+                }
+
+                // Start new island
+                Island newIsland = new Island();
+                Queue<Body> frontier = new LinkedList<>(); // Begin BFS to construct the island
+                frontier.offer(b);
+                while (!frontier.isEmpty()) {
+                    Body checkBody = frontier.poll();
+
+                    if (checkBody.hasFlag(Flag.FROZEN_ROTATION) || checkBody.hasFlag(Flag.FROZEN_TRANSLATION) || checkBody.hasFlag(Flag.FROZEN) || checkBody.getIsland() != null) {
+                        continue;
+                    }
+
+                    newIsland.addBody(checkBody);
+                    checkBody.setIsland(newIsland);
+                    for (Body contactBody : checkBody.getContactBodies()) {
+                        frontier.offer(contactBody);
+                    }
+                }
+
+                islands.add(newIsland);
+            }
+        }
+
+        for (Island i : islands) {
+            i.update(dt);
         }
 
         // Post-update ticking
@@ -241,6 +324,10 @@ public class World {
      */
     public void removeBody(Body body) {
         this.bodies.remove(body);
+
+        if (body.getIsland() != null) { // Wake up its island
+            body.getIsland().wake();
+        }
 
         // Update associations with new object
         broadPhase.removeBody(body);

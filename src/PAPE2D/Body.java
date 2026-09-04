@@ -4,6 +4,7 @@ import PAPE2D.graphics.Sprite;
 import PAPE2D.helper.Vector2;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +27,7 @@ public class Body {
     // Attributes
     // =================================================================================
     private Vector2 position;
+    private Vector2 tempPosition;
     private Vector2 velocity;
     private double angle = 0;
     private double angularVelocity = 0;
@@ -60,6 +62,11 @@ public class Body {
      * Default sprite scaling method; if not null, it is used to fit each sprite to the body when that sprite is set
      */
     public static SpriteScalingMethod DEFAULT_SPRITE_FIT = SpriteScalingMethod.FIT;
+
+    private Set<Body> contactBodies = new HashSet<>();
+
+    private Island island = null;
+    private boolean sleeping = false;
 
     // =================================================================================
     // Constructors
@@ -274,6 +281,10 @@ public class Body {
      * @param newPosition Given new position (corresponds to physical point on body referenced while constructing this body)
      */
     public void changePosition(Vector2 newPosition) {
+        if (isSleeping()) {
+            wake();
+        }
+
         // User supplies newPosition (user origin), use (rotated) originVector on it to find where the real position (COM) should be to satisfy their desire
         setPosition(newPosition.plus(getOriginVector().rotate(getAngle())));
     }
@@ -295,6 +306,7 @@ public class Body {
      * @param newVelocity Given velocity
      */
     public void setVelocity(Vector2 newVelocity) {
+        // WIP: manual user application of velocity will not wake a body up (could conflict with internal usage that shouldn't cause waking)
         this.velocity = newVelocity;
     }
 
@@ -304,6 +316,9 @@ public class Body {
      * @param deltaVelocity Given change in velocity
      */
     public void addVelocity(Vector2 deltaVelocity) {
+        if (isSleeping()) {
+            return;
+        }
         setVelocity(getVelocity().plus(deltaVelocity));
     }
 
@@ -349,6 +364,9 @@ public class Body {
      * @param deltaAngularVelocity Given change in angular velocity
      */
     public void addAngularVelocity(double deltaAngularVelocity) {
+        if (isSleeping()) {
+            return;
+        }
         setAngularVelocity(getAngularVelocity()+deltaAngularVelocity);
     }
 
@@ -625,7 +643,12 @@ public class Body {
         if (hasFlag(Flag.DEBUG)) {
             // Center of mass
             Vector2 COMscreen = physicsLoop.worldToScreenCoords(getPosition());
-            physicsLoop.drawSquare(COMscreen.getX()-1,COMscreen.getY()-1,2, Color.RED);
+            if (isSleeping()) {
+                physicsLoop.drawSquare(COMscreen.getX()-1,COMscreen.getY()-1,2, Color.BLUE);
+            } else {
+                physicsLoop.drawSquare(COMscreen.getX()-1,COMscreen.getY()-1,2, Color.RED);
+            }
+
 
             // AABB (bounding box)
             // We know these lines are straight, so (luckily) no weird antialiasing nonsense is necessary
@@ -890,5 +913,81 @@ public class Body {
             setSpriteScaleX(necessaryScaling[0]);
             setSpriteScaleY(necessaryScaling[1]);
         }
+    }
+
+    // =================================================================================
+    // Contact bodies
+    // =================================================================================
+
+    /**
+     * Get the set of bodies this body is in contact with
+     *
+     * @note Set is reset and updated during a frame, before post-tick listeners are called but after pre-tick listeners are called
+     * @note A contact only counts if its respective constraint is solved; it does not apply when both bodies are frozen, when collision is disabled, when both are sleeping, etc.
+     *
+     * @return Set of bodies this body is in contact with
+     */
+    public Set<Body> getContactBodies() {
+        return contactBodies;
+    }
+
+    void clearContactBodies() {
+        this.contactBodies.clear();
+    }
+
+    void addContactBody(Body contactBody) {
+        this.contactBodies.add(contactBody);
+    }
+
+    // =================================================================================
+    // Islands, sleeping, and waking
+    // =================================================================================
+
+    /**
+     * Check whether this body is currently sleeping
+     *
+     * @return True if the body is sleeping; false otherwise
+     */
+    public boolean isSleeping() {
+        return sleeping;
+    }
+
+    void setSleeping(boolean sleeping) {
+        this.sleeping = sleeping;
+
+        if (sleeping) { // Put the body to sleep
+            setVelocity(new Vector2());
+            setAngularVelocity(0);
+        }
+    }
+
+    /**
+     * Get the island object this body is currently part of
+     *
+     * @return Island object this body is part of; null if not part of any island
+     */
+    public Island getIsland() {
+        return island;
+    }
+
+    void setIsland(Island island) {
+        this.island = island;
+    }
+
+    /**
+     * Wake this body, if it is sleeping
+     */
+    public void wake() {
+        if (getIsland() != null) {
+            getIsland().wake(); // Wake up the whole island
+        }
+    }
+
+    Vector2 getTempPosition() {
+        return tempPosition;
+    }
+
+    void setTempPosition(Vector2 tempPosition) {
+        this.tempPosition = tempPosition;
     }
 }

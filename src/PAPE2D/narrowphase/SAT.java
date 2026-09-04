@@ -19,6 +19,17 @@ public class SAT extends NarrowPhaseCollisionSystem {
     // =================================================================================
     @Override
     public List<ContactManifold> getContactManifolds(PotentialCollidingPair potentialCollidingPair) {
+        if (potentialCollidingPair.getFixture1().getParentBody().isSleeping() && potentialCollidingPair.getFixture2().getParentBody().isSleeping()) {
+            return new ArrayList<>(); // Ignore collisions between two sleeping bodies (part of same island)
+        }
+
+        if (potentialCollidingPair.getFixture1().getParentBody().isSleeping() && potentialCollidingPair.getFixture2().getParentBody().hasFlag(Flag.FROZEN)) {
+            return new ArrayList<>(); // Ignore collisions between a sleeping body and a frozen body
+        }
+
+        if (potentialCollidingPair.getFixture2().getParentBody().isSleeping() && potentialCollidingPair.getFixture1().getParentBody().hasFlag(Flag.FROZEN)) {
+            return new ArrayList<>(); // Ignore collisions between a sleeping body and a frozen body (again)
+        }
 
         // 1. Get list of axes to check from Bodies
         List<Vector2> SATAxes = potentialCollidingPair.getSATAxes();

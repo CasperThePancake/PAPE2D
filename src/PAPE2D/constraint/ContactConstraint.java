@@ -126,7 +126,7 @@ public class ContactConstraint extends ScalarDynamicConstraint {
         double depth = contactManifold.getPenetrationDepth();
 
         // Allowed penetration allowance (linear slop)
-        double allowedPenetration = 0.05;
+        double allowedPenetration = 0.002;
         double error = Math.max(0.0, depth - allowedPenetration);
 
         // Calculate the raw Baumgarte push
@@ -139,6 +139,14 @@ public class ContactConstraint extends ScalarDynamicConstraint {
 
     @Override
     public void initConstraint(double beta, double dt) {
+        // Wake up bodies if necessary
+        // (two sleeping bodies colliding would not create a manifold (see beginning of SAT.java), so this would mean a non-sleeper hit a sleeper)
+        if (contactManifold.getBody1().getIsland() != contactManifold.getBody2().getIsland() && !contactManifold.getBody1().hasFlag(Flag.FROZEN) && !contactManifold.getBody2().hasFlag(Flag.FROZEN) ) {
+            contactManifold.getBody1().wake();
+            contactManifold.getBody2().wake();
+        }
+
+        // General initialization
         super.initConstraint(beta, dt);
         this.beta = beta;
 

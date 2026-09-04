@@ -36,12 +36,12 @@ Now I want to keep building the library, to make it more accessible and actually
 ### Being worked on
 (For the next update)
 
-- Body sleeping to weaken numerical drift (since 24/08/2026)
-- Z-ordering for sprite rendering (since 24/08/2026)
+- Z-ordering for sprite rendering (since 04/09/2026)
+- Option for revolute pin joints to snap/break (since 04/09/2026)
+- Helper grouping of bodies to apply flags/settings to multiple bodies in one line (since 04/09/2026)
 
 ### Planned features
 (In order of planned importance)
 
-- Option for revolute pin joints to snap/break
 - Area Of Effect objects for more control over forces/attributes per world area
 - Support for concave polygons using fixture system
